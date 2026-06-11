@@ -115,6 +115,9 @@ Generate simple SitReps from incident data:
 * Gaps
 * Next operational period priorities
 
+The current implementation also supports AI-assisted SitRep drafting. Drafts are
+generated from incident context and must be reviewed before use.
+
 ### 8. Map View
 
 Display:
@@ -363,7 +366,7 @@ User, role, and organization management.
 
 * Offline-first mobile mode
 * SMS/WhatsApp alerts
-* AI-assisted SitRep drafting
+* AI-assisted concept-note drafting
 * Damage assessment photo upload
 * Duplicate need detection
 * Volunteer registration
