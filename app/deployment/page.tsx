@@ -1,0 +1,30 @@
+import { AppShell } from "@/app/components/app-shell";
+import { deployedTeams, incidents, resources } from "@/app/lib/demo-data";
+import { DeploymentWorkspace } from "./deployment-workspace";
+
+export default function DeploymentPage() {
+  return (
+    <AppShell active="Deployment">
+      <div className="space-y-6">
+        <header>
+          <p className="text-sm font-semibold text-teal-700">
+            Deployment management
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold text-zinc-950">
+            Deployment
+          </h1>
+          <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600">
+            Assign teams and deploy inventory items to incidents. Item deployment
+            is ordered by FIFO so older stock is selected first.
+          </p>
+        </header>
+
+        <DeploymentWorkspace
+          initialResources={resources}
+          initialTeams={deployedTeams}
+          incidents={incidents}
+        />
+      </div>
+    </AppShell>
+  );
+}

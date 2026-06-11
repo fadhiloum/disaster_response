@@ -1,7 +1,7 @@
 import { AppShell } from "@/app/components/app-shell";
 import { OpsMap } from "@/app/components/ops-map";
 import { SectionHeader, StatusBadge } from "@/app/components/ui";
-import { incidents, needReports } from "@/app/lib/demo-data";
+import { formatNumber, incidents } from "@/app/lib/demo-data";
 
 export default function MapPage() {
   return (
@@ -13,26 +13,28 @@ export default function MapPage() {
             Operational Map
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600">
-            Incident points, need reports, resource hubs, teams, and hazards in
-            one shared view.
+            World map view of incident locations for quick global awareness.
           </p>
         </header>
 
         <section className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
-            <SectionHeader title="Layers" />
-            <div className="mt-4 space-y-3">
-              {["Incidents", "Needs", "Warehouses", "Assigned teams", "Road hazards"].map(
-                (layer) => (
-                  <label
-                    className="flex min-h-10 items-center justify-between gap-3 rounded-md border border-zinc-200 px-3"
-                    key={layer}
-                  >
-                    <span className="text-sm font-semibold text-zinc-700">{layer}</span>
-                    <input defaultChecked className="h-4 w-4 accent-teal-700" type="checkbox" />
-                  </label>
-                ),
-              )}
+            <SectionHeader title="Map scope" />
+            <div className="mt-4 grid gap-3">
+              <MapSummary label="Incidents" value={incidents.length.toString()} />
+              <MapSummary
+                label="Countries"
+                value={new Set(incidents.map((incident) => incident.country)).size.toString()}
+              />
+              <MapSummary
+                label="Affected people"
+                value={formatNumber(
+                  incidents.reduce(
+                    (total, incident) => total + incident.affectedPeople,
+                    0,
+                  ),
+                )}
+              />
             </div>
 
             <div className="mt-6">
@@ -52,13 +54,19 @@ export default function MapPage() {
             </div>
 
             <div className="mt-6">
-              <SectionHeader title="Open needs" />
-              <p className="mt-3 text-3xl font-semibold text-zinc-950">
-                {needReports.length}
-              </p>
-              <p className="mt-1 text-sm text-zinc-500">
-                Field reports currently visible on the map.
-              </p>
+              <SectionHeader title="Countries" />
+              <div className="mt-4 flex flex-wrap gap-2">
+                {Array.from(new Set(incidents.map((incident) => incident.country))).map(
+                  (country) => (
+                    <span
+                      className="rounded border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-semibold text-zinc-700"
+                      key={country}
+                    >
+                      {country}
+                    </span>
+                  ),
+                )}
+              </div>
             </div>
           </aside>
 
@@ -66,5 +74,14 @@ export default function MapPage() {
         </section>
       </div>
     </AppShell>
+  );
+}
+
+function MapSummary({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2">
+      <p className="text-xs font-semibold uppercase text-zinc-500">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-zinc-950">{value}</p>
+    </div>
   );
 }

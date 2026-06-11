@@ -19,6 +19,9 @@ export type Incident = {
   disasterType: string;
   severity: Severity;
   status: IncidentStatus;
+  region: string;
+  country: string;
+  state: string;
   locationName: string;
   latitude: number;
   longitude: number;
@@ -69,8 +72,18 @@ export type Resource = {
   quantityCommitted: number;
   unit: string;
   warehouseLocation: string;
+  receivedAt: string;
   expiryDate: string | null;
   assignedIncidentId: string | null;
+};
+
+export type DeployedTeam = {
+  id: string;
+  incidentId: string;
+  name: string;
+  role: string;
+  members: string;
+  deployedAt: string;
 };
 
 export type PartnerActivity = {
@@ -156,9 +169,12 @@ export const incidents: Incident[] = [
     disasterType: "flood",
     severity: "critical",
     status: "active",
-    locationName: "Riverside District",
-    latitude: 13.755,
-    longitude: 100.514,
+    region: "Asia Pacific",
+    country: "Malaysia",
+    state: "Sabah",
+    locationName: "Kota Belud District",
+    latitude: 6.351,
+    longitude: 116.43,
     affectedPeople: 18400,
     openNeeds: 12,
     resourceGaps: 5,
@@ -176,9 +192,12 @@ export const incidents: Incident[] = [
     disasterType: "landslide",
     severity: "high",
     status: "stabilizing",
+    region: "Asia Pacific",
+    country: "Philippines",
+    state: "Davao del Sur",
     locationName: "Hill Ward Road 18",
-    latitude: 13.734,
-    longitude: 100.556,
+    latitude: 7.19,
+    longitude: 125.46,
     affectedPeople: 4200,
     openNeeds: 6,
     resourceGaps: 2,
@@ -196,9 +215,12 @@ export const incidents: Incident[] = [
     disasterType: "fire",
     severity: "moderate",
     status: "monitoring",
+    region: "South Asia",
+    country: "Bangladesh",
+    state: "Chattogram",
     locationName: "Eastport Industrial Zone",
-    latitude: 13.721,
-    longitude: 100.604,
+    latitude: 22.356,
+    longitude: 91.783,
     affectedPeople: 900,
     openNeeds: 3,
     resourceGaps: 1,
@@ -337,6 +359,7 @@ export const resources: Resource[] = [
     quantityCommitted: 2,
     unit: "units",
     warehouseLocation: "Central Warehouse",
+    receivedAt: "2026-05-19",
     expiryDate: null,
     assignedIncidentId: "flood-riverside",
   },
@@ -348,6 +371,7 @@ export const resources: Resource[] = [
     quantityCommitted: 180,
     unit: "kits",
     warehouseLocation: "North Depot",
+    receivedAt: "2026-04-28",
     expiryDate: null,
     assignedIncidentId: "landslide-hill-ward",
   },
@@ -359,6 +383,7 @@ export const resources: Resource[] = [
     quantityCommitted: 6,
     unit: "kits",
     warehouseLocation: "Medical Depot",
+    receivedAt: "2026-05-02",
     expiryDate: "2027-02-15",
     assignedIncidentId: "flood-riverside",
   },
@@ -370,8 +395,44 @@ export const resources: Resource[] = [
     quantityCommitted: 12,
     unit: "stations",
     warehouseLocation: "East Logistics Hub",
+    receivedAt: "2026-05-25",
     expiryDate: null,
     assignedIncidentId: "warehouse-fire-eastport",
+  },
+];
+
+export const deployedTeams: DeployedTeam[] = [
+  {
+    id: "team-field-north",
+    incidentId: "flood-riverside",
+    name: "Field Team North",
+    role: "Rapid assessment and shelter coordination",
+    members: "Anika Rao, Rafiq Amin, Lina Tan",
+    deployedAt: "2026-06-10T08:00:00+07:00",
+  },
+  {
+    id: "team-medical-riverside",
+    incidentId: "flood-riverside",
+    name: "Medical Response Unit",
+    role: "Mobile clinic support",
+    members: "Jon Reyes, Dr. Mei Lim",
+    deployedAt: "2026-06-10T10:30:00+07:00",
+  },
+  {
+    id: "team-engineering-hill",
+    incidentId: "landslide-hill-ward",
+    name: "Engineering Safety Cell",
+    role: "Slope and structure safety checks",
+    members: "Nadia Okafor, Bilal Khan",
+    deployedAt: "2026-06-10T06:45:00+07:00",
+  },
+  {
+    id: "team-clinic-eastport",
+    incidentId: "warehouse-fire-eastport",
+    name: "Community Health Screeners",
+    role: "Respiratory symptom screening",
+    members: "Dr. Arun Patel, Sara Wong",
+    deployedAt: "2026-06-11T07:15:00+07:00",
   },
 ];
 
@@ -457,6 +518,14 @@ export function getIncidentActivities(id: string) {
 
 export function getIncidentSitreps(id: string) {
   return situationReports.filter((sitrep) => sitrep.incidentId === id);
+}
+
+export function getIncidentResources(id: string) {
+  return resources.filter((resource) => resource.assignedIncidentId === id);
+}
+
+export function getIncidentTeams(id: string) {
+  return deployedTeams.filter((team) => team.incidentId === id);
 }
 
 export function formatDateTime(value: string) {

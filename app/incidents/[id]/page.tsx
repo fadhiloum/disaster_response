@@ -15,10 +15,11 @@ import {
   getIncident,
   getIncidentActivities,
   getIncidentNeeds,
+  getIncidentResources,
   getIncidentSitreps,
+  getIncidentTeams,
   getIncidentTasks,
   incidents,
-  resources,
 } from "@/app/lib/demo-data";
 
 export function generateStaticParams() {
@@ -41,9 +42,8 @@ export default async function IncidentDetailPage({
   const incidentTasks = getIncidentTasks(incident.id);
   const activities = getIncidentActivities(incident.id);
   const sitreps = getIncidentSitreps(incident.id);
-  const assignedResources = resources.filter(
-    (resource) => resource.assignedIncidentId === incident.id,
-  );
+  const assignedResources = getIncidentResources(incident.id);
+  const deployedTeams = getIncidentTeams(incident.id);
 
   return (
     <AppShell active="Incidents">
@@ -66,13 +66,17 @@ export default async function IncidentDetailPage({
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
+            <CommandLink href={`/api/incidents/${incident.id}/concept-note`}>
+              Export Concept Note
+            </CommandLink>
+            <CommandLink href="/deployment">Manage Deployment</CommandLink>
             <CommandLink href="/sitreps">Generate SitRep</CommandLink>
             <CommandLink href="/map">Open map</CommandLink>
           </div>
         </header>
 
         <nav className="flex gap-2 overflow-x-auto rounded-lg border border-zinc-200 bg-white p-2 shadow-sm">
-          {["Overview", "Map", "Needs", "Tasks", "Resources", "Partners", "SitReps"].map(
+          {["Overview", "Map", "Needs", "Tasks", "Deployment", "Partners", "SitReps"].map(
             (tab) => (
               <a
                 className="min-h-9 shrink-0 rounded-md px-3 py-2 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
@@ -99,6 +103,7 @@ export default async function IncidentDetailPage({
           </p>
           <dl className="mt-5 grid gap-4 text-sm md:grid-cols-3">
             <Info label="Location" value={incident.locationName} />
+            <Info label="Country / state" value={`${incident.country} / ${incident.state}`} />
             <Info label="Started" value={formatDateTime(incident.startTime)} />
             <Info label="Incident lead" value={incident.lead} />
           </dl>
@@ -150,28 +155,82 @@ export default async function IncidentDetailPage({
           </div>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-2">
-          <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="resources">
-            <SectionHeader title="Resources" />
+        <section
+          className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm"
+          id="deployment"
+        >
+          <SectionHeader
+            action={
+              <Link className="text-sm font-semibold text-teal-700" href="/deployment">
+                Manage
+              </Link>
+            }
+            title="Deployment"
+          />
+          <div className="mt-4 grid gap-6 xl:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold uppercase text-zinc-500">
+                Deployed items
+              </h3>
             <div className="mt-4 space-y-3">
-              {assignedResources.map((resource) => (
-                <div className="rounded-lg border border-zinc-200 p-4" key={resource.id}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="font-semibold text-zinc-950">{resource.name}</p>
-                      <p className="mt-1 text-sm text-zinc-500">
-                        {resource.category} - {resource.warehouseLocation}
-                      </p>
+                {assignedResources.length ? (
+                  assignedResources.map((resource) => (
+                    <div className="rounded-lg border border-zinc-200 p-4" key={resource.id}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="font-semibold text-zinc-950">{resource.name}</p>
+                          <p className="mt-1 text-sm text-zinc-500">
+                            {resource.category} - {resource.warehouseLocation}
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-zinc-500">
+                            FIFO received {resource.receivedAt}
+                          </p>
+                        </div>
+                        <p className="text-right text-sm font-semibold text-zinc-800">
+                          {resource.quantityCommitted} {resource.unit} committed
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-right text-sm font-semibold text-zinc-800">
-                      {resource.quantityCommitted} committed
-                    </p>
-                  </div>
-                </div>
-              ))}
+                  ))
+                ) : (
+                  <p className="rounded-lg border border-zinc-200 p-4 text-sm text-zinc-500">
+                    No items have been deployed to this incident.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold uppercase text-zinc-500">
+                Deployed teams
+              </h3>
+              <div className="mt-4 space-y-3">
+                {deployedTeams.length ? (
+                  deployedTeams.map((team) => (
+                    <div className="rounded-lg border border-zinc-200 p-4" key={team.id}>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-zinc-950">{team.name}</p>
+                          <p className="mt-1 text-sm text-zinc-500">{team.role}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-zinc-700">
+                          {formatDateTime(team.deployedAt)}
+                        </p>
+                      </div>
+                      <p className="mt-3 text-sm text-zinc-600">{team.members}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-lg border border-zinc-200 p-4 text-sm text-zinc-500">
+                    No teams have been deployed to this incident.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
+        </section>
 
+        <section className="grid gap-6 xl:grid-cols-2">
           <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="partners">
             <SectionHeader title="Partner 3W" />
             <div className="mt-4 space-y-3">

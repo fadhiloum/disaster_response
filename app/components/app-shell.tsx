@@ -4,7 +4,7 @@ import { currentUser } from "@/app/lib/demo-data";
 const navigation = [
   { href: "/", label: "Dashboard" },
   { href: "/incidents", label: "Incidents" },
-  { href: "/resources", label: "Resources" },
+  { href: "/deployment", label: "Deployment" },
   { href: "/map", label: "Map" },
   { href: "/sitreps", label: "SitReps" },
   { href: "/admin", label: "Admin" },
@@ -60,7 +60,7 @@ export function AppShell({
             <p className="text-sm font-semibold text-teal-950">Current posture</p>
             <p className="mt-2 text-sm leading-6 text-teal-900">
               Coordinating active response across flood, landslide, and fire
-              incidents.
+              incidents with teams and FIFO inventory deployment.
             </p>
           </div>
         </aside>

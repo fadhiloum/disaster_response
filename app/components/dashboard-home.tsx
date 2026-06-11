@@ -155,7 +155,7 @@ export function DashboardHome() {
             </div>
           </Panel>
 
-          <Panel title="Resources and Partners" href="/resources">
+          <Panel title="Deployment and Partners" href="/deployment">
             <div className="space-y-3">
               {resources.slice(0, 3).map((resource) => (
                 <div

@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Disaster Response Platform",
   description:
-    "Incident, needs, resources, tasks, partners, maps, and situation reports for emergency response coordination.",
+    "Incident, needs, deployment, tasks, partners, maps, and situation reports for emergency response coordination.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

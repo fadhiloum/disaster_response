@@ -54,6 +54,33 @@ export default function NewIncidentPage() {
             />
           </Field>
 
+          <Field label="Region">
+            <input
+              className="input"
+              name="region"
+              placeholder="Asia Pacific"
+              type="text"
+            />
+          </Field>
+
+          <Field label="Country">
+            <input
+              className="input"
+              name="country"
+              placeholder="Malaysia"
+              type="text"
+            />
+          </Field>
+
+          <Field label="State">
+            <input
+              className="input"
+              name="state"
+              placeholder="Sabah"
+              type="text"
+            />
+          </Field>
+
           <Field label="Start date and time">
             <input className="input" name="startTime" type="datetime-local" />
           </Field>
