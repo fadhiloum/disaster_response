@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COORDINATOR
+  RESPONDER
+  PARTNER
+  VIEWER
+}
+
+enum DisasterType {
+  FLOOD
+  EARTHQUAKE
+  LANDSLIDE
+  FIRE
+  STORM
+  CONFLICT
+  OTHER
+}
+
+enum Severity {
+  LOW
+  MODERATE
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  MONITORING
+  ACTIVE
+  STABILIZING
+  CLOSED
+}
+
+enum NeedCategory {
+  FOOD
+  WATER
+  SHELTER
+  MEDICAL
+  WASH
+  SEARCH_AND_RESCUE
+  LOGISTICS
+  PROTECTION
+  OTHER
+}
+
+enum NeedStatus {
+  REPORTED
+  VERIFIED
+  ASSIGNED
+  FULFILLED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
+model User {
+  id             String            @id @default(cuid())
+  name           String
+  email          String            @unique
+  role           Role              @default(VIEWER)
+  organizationId String?
+  organization   Organization?     @relation(fields: [organizationId], references: [id])
+  incidents      Incident[]        @relation("IncidentCreator")
+  reportedNeeds  NeedReport[]      @relation("NeedReporter")
+  verifiedNeeds  NeedReport[]      @relation("NeedVerifier")
+  assignedTasks  Task[]            @relation("TaskAssignee")
+  createdTasks   Task[]            @relation("TaskCreator")
+  sitreps        SituationReport[] @relation("SitRepCreator")
+  createdAt      DateTime          @default(now())
+}
+
+model Organization {
+  id                String            @id @default(cuid())
+  name              String
+  type              String
+  contactEmail      String?
+  phone             String?
+  address           String?
+  users             User[]
+  partnerActivities PartnerActivity[]
+  createdAt         DateTime          @default(now())
+}
+
+model Incident {
+  id                String            @id @default(cuid())
+  title             String
+  disasterType      DisasterType
+  severity          Severity
+  status            IncidentStatus    @default(MONITORING)
+  description       String
+  latitude          Decimal           @db.Decimal(9, 6)
+  longitude         Decimal           @db.Decimal(9, 6)
+  locationName      String
+  startTime         DateTime
+  createdById       String
+  createdBy         User              @relation("IncidentCreator", fields: [createdById], references: [id])
+  needs             NeedReport[]
+  tasks             Task[]
+  partnerActivities PartnerActivity[]
+  situationReports  SituationReport[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model NeedReport {
+  id             String       @id @default(cuid())
+  incidentId     String
+  incident       Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  category       NeedCategory
+  urgency        Priority
+  quantity       Int
+  affectedPeople Int
+  status         NeedStatus   @default(REPORTED)
+  latitude       Decimal      @db.Decimal(9, 6)
+  longitude      Decimal      @db.Decimal(9, 6)
+  locationName   String
+  notes          String?
+  reportedById   String
+  reportedBy     User         @relation("NeedReporter", fields: [reportedById], references: [id])
+  verifiedById   String?
+  verifiedBy     User?        @relation("NeedVerifier", fields: [verifiedById], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model Resource {
+  id                String             @id @default(cuid())
+  name              String
+  category          String
+  quantityAvailable Int
+  quantityCommitted Int                @default(0)
+  unit              String
+  warehouseLocation String
+  expiryDate        DateTime?
+  movements         ResourceMovement[]
+  createdAt         DateTime           @default(now())
+}
+
+model ResourceMovement {
+  id         String   @id @default(cuid())
+  resourceId String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  incidentId String?
+  quantity   Int
+  note       String?
+  createdAt  DateTime @default(now())
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  incidentId  String
+  incident    Incident   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  assigneeId  String?
+  assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  priority    Priority
+  status      TaskStatus @default(TODO)
+  dueTime     DateTime?
+  latitude    Decimal?   @db.Decimal(9, 6)
+  longitude   Decimal?   @db.Decimal(9, 6)
+  createdById String
+  createdBy   User       @relation("TaskCreator", fields: [createdById], references: [id])
+  createdAt   DateTime   @default(now())
+}
+
+model PartnerActivity {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  incidentId     String
+  incident       Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  sector         String
+  activity       String
+  locationName   String
+  latitude       Decimal?     @db.Decimal(9, 6)
+  longitude      Decimal?     @db.Decimal(9, 6)
+  status         String
+  contactName    String
+  contactPhone   String?
+  startDate      DateTime
+  endDate        DateTime?
+}
+
+model SituationReport {
+  id                   String   @id @default(cuid())
+  incidentId           String
+  incident             Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  reportingPeriodStart DateTime
+  reportingPeriodEnd   DateTime
+  summary              String
+  impact               String
+  priorityNeeds        String
+  responseActions      String
+  gaps                 String
+  nextPriorities       String
+  createdById          String
+  createdBy            User     @relation("SitRepCreator", fields: [createdById], references: [id])
+  createdAt            DateTime @default(now())
+}
