@@ -16,7 +16,7 @@ export default function NewIncidentPage() {
     <AppShell active="Incidents">
       <div className="space-y-6">
         <header>
-          <p className="text-sm font-semibold text-teal-700">
+          <p className="text-sm font-semibold text-[#244a9b]">
             Incident management
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-zinc-950">

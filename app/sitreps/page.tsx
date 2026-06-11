@@ -9,7 +9,7 @@ export default function SitRepsPage() {
       <div className="space-y-6">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teal-700">
+            <p className="text-sm font-semibold text-[#244a9b]">
               Situation reporting
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-zinc-950">
@@ -59,7 +59,7 @@ export default function SitRepsPage() {
               return (
                 <div className="mt-5 space-y-5" key={report.id}>
                   <div>
-                    <p className="text-sm font-semibold text-teal-700">
+                    <p className="text-sm font-semibold text-[#244a9b]">
                       {report.reportingPeriod}
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold text-zinc-950">

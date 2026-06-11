@@ -31,7 +31,7 @@ export function DashboardHome() {
       <div className="space-y-6">
         <header className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-semibold text-teal-700">
+            <p className="text-sm font-semibold text-[#244a9b]">
               Common operating picture
             </p>
             <h1 className="mt-2 text-3xl font-semibold text-zinc-950 sm:text-4xl">
@@ -86,7 +86,7 @@ export function DashboardHome() {
 
           <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
             <SectionHeader
-              action={<Link className="text-sm font-semibold text-teal-700" href="/incidents">View all</Link>}
+              action={<Link className="text-sm font-semibold text-[#244a9b]" href="/incidents">View all</Link>}
               title="Active Incidents"
             />
             <div className="mt-4 space-y-3">
@@ -211,7 +211,7 @@ function Panel({
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
       <SectionHeader
-        action={<Link className="text-sm font-semibold text-teal-700" href={href}>Open</Link>}
+        action={<Link className="text-sm font-semibold text-[#244a9b]" href={href}>Open</Link>}
         title={title}
       />
       <div className="mt-4">{children}</div>

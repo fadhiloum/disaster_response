@@ -125,7 +125,7 @@ export function IncidentsWorkspace({
                 <tr className="align-top hover:bg-zinc-50" key={incident.id}>
                   <td className="px-4 py-4">
                     <Link
-                      className="font-semibold text-zinc-950 hover:text-teal-700"
+                      className="font-semibold text-zinc-950 hover:text-[#244a9b]"
                       href={`/incidents/${incident.id}`}
                     >
                       {incident.title}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/app/components/app-shell";
+import { Icon, type IconName } from "@/app/components/icons";
 import { OpsMap } from "@/app/components/ops-map";
 import {
   CommandLink,
@@ -21,6 +22,16 @@ import {
   getIncidentTasks,
   incidents,
 } from "@/app/lib/demo-data";
+
+const incidentTabs = [
+  { icon: "overview", id: "overview", label: "Overview" },
+  { icon: "map", id: "map", label: "Map" },
+  { icon: "needs", id: "needs", label: "Needs" },
+  { icon: "tasks", id: "tasks", label: "Tasks" },
+  { icon: "deployment", id: "deployment", label: "Deployment" },
+  { icon: "partners", id: "partners", label: "Partners" },
+  { icon: "report", id: "sitreps", label: "SitReps" },
+] satisfies Array<{ icon: IconName; id: string; label: string }>;
 
 export function generateStaticParams() {
   return incidents.map((incident) => ({ id: incident.id }));
@@ -50,7 +61,7 @@ export default async function IncidentDetailPage({
       <div className="space-y-6">
         <header className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <Link className="text-sm font-semibold text-teal-700" href="/incidents">
+            <Link className="text-sm font-semibold text-[#244a9b]" href="/incidents">
               Back to incidents
             </Link>
             <h1 className="mt-3 text-3xl font-semibold text-zinc-950">
@@ -76,14 +87,15 @@ export default async function IncidentDetailPage({
         </header>
 
         <nav className="flex gap-2 overflow-x-auto rounded-lg border border-zinc-200 bg-white p-2 shadow-sm">
-          {["Overview", "Map", "Needs", "Tasks", "Deployment", "Partners", "SitReps"].map(
+          {incidentTabs.map(
             (tab) => (
               <a
-                className="min-h-9 shrink-0 rounded-md px-3 py-2 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
-                href={`#${tab.toLowerCase()}`}
-                key={tab}
+                className="inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-zinc-600 hover:bg-[#eef3ff] hover:text-[#244a9b]"
+                href={`#${tab.id}`}
+                key={tab.id}
               >
-                {tab}
+                <Icon className="h-4 w-4" name={tab.icon} />
+                {tab.label}
               </a>
             ),
           )}
@@ -161,7 +173,7 @@ export default async function IncidentDetailPage({
         >
           <SectionHeader
             action={
-              <Link className="text-sm font-semibold text-teal-700" href="/deployment">
+              <Link className="text-sm font-semibold text-[#244a9b]" href="/deployment">
                 Manage
               </Link>
             }
@@ -272,7 +284,7 @@ export default async function IncidentDetailPage({
                       </p>
                     </div>
                     <Link
-                      className="text-sm font-semibold text-teal-700"
+                      className="text-sm font-semibold text-[#244a9b]"
                       href={`/api/sitreps/${sitrep.id}/export`}
                     >
                       Export
