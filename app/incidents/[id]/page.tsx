@@ -11,17 +11,10 @@ import {
   StatusBadge,
 } from "@/app/components/ui";
 import {
+  data,
   formatDateTime,
   formatNumber,
-  getIncident,
-  getIncidentActivities,
-  getIncidentNeeds,
-  getIncidentResources,
-  getIncidentSitreps,
-  getIncidentTeams,
-  getIncidentTasks,
-  incidents,
-} from "@/app/lib/demo-data";
+} from "@/app/lib/data";
 
 const incidentTabs = [
   { icon: "overview", id: "overview", label: "Overview" },
@@ -33,7 +26,9 @@ const incidentTabs = [
   { icon: "report", id: "sitreps", label: "SitReps" },
 ] satisfies Array<{ icon: IconName; id: string; label: string }>;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const incidents = await data.listIncidents();
+
   return incidents.map((incident) => ({ id: incident.id }));
 }
 
@@ -43,18 +38,29 @@ export default async function IncidentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const incident = getIncident(id);
+  const incident = await data.getIncident(id);
 
   if (!incident) {
     notFound();
   }
 
-  const needs = getIncidentNeeds(incident.id);
-  const incidentTasks = getIncidentTasks(incident.id);
-  const activities = getIncidentActivities(incident.id);
-  const sitreps = getIncidentSitreps(incident.id);
-  const assignedResources = getIncidentResources(incident.id);
-  const deployedTeams = getIncidentTeams(incident.id);
+  const [
+    allIncidents,
+    needs,
+    incidentTasks,
+    activities,
+    sitreps,
+    assignedResources,
+    deployedTeams,
+  ] = await Promise.all([
+    data.listIncidents(),
+    data.getIncidentNeeds(incident.id),
+    data.getIncidentTasks(incident.id),
+    data.getIncidentActivities(incident.id),
+    data.getIncidentSitreps(incident.id),
+    data.getIncidentResources(incident.id),
+    data.getIncidentTeams(incident.id),
+  ]);
 
   return (
     <AppShell active="Incidents">
@@ -122,7 +128,7 @@ export default async function IncidentDetailPage({
         </section>
 
         <div id="map">
-          <OpsMap focusIncident={incident} />
+          <OpsMap focusIncident={incident} incidents={allIncidents} />
         </div>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="needs">

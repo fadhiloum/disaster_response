@@ -1,8 +1,14 @@
 import { AppShell } from "@/app/components/app-shell";
-import { deployedTeams, incidents, resources } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 import { DeploymentWorkspace } from "./deployment-workspace";
 
-export default function DeploymentPage() {
+export default async function DeploymentPage() {
+  const [deployedTeams, incidents, resources] = await Promise.all([
+    data.listDeployedTeams(),
+    data.listIncidents(),
+    data.listResources(),
+  ]);
+
   return (
     <AppShell active="Deployment">
       <div className="space-y-6">

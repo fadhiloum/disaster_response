@@ -1,11 +1,11 @@
-import { resources } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const resource = resources.find((item) => item.id === id);
+  const resource = (await data.listResources()).find((item) => item.id === id);
 
   if (!resource) {
     return Response.json({ error: "Resource not found" }, { status: 404 });
@@ -19,6 +19,6 @@ export async function PATCH(
       ...payload,
       id: resource.id,
     },
-    mode: "demo",
+    mode: data.backend,
   });
 }

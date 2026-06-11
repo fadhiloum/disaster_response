@@ -7,8 +7,11 @@ import {
   SeverityBadge,
   StatusBadge,
 } from "@/app/components/ui";
-import type { Incident } from "@/app/lib/demo-data";
-import { formatDateTime, formatNumber } from "@/app/lib/demo-data";
+import {
+  formatDateTime,
+  formatNumber,
+  type Incident,
+} from "@/app/lib/data";
 
 type FilterKey = "region" | "country" | "state";
 

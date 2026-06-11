@@ -1,6 +1,6 @@
 import { AppShell } from "@/app/components/app-shell";
 import { SectionHeader, StatusBadge } from "@/app/components/ui";
-import { users } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 const organizations = [
   {
@@ -25,7 +25,9 @@ const organizations = [
   },
 ];
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const users = await data.listUsers();
+
   return (
     <AppShell active="Admin">
       <div className="space-y-6">

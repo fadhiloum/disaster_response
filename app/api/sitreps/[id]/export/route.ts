@@ -1,17 +1,19 @@
-import { getIncident, situationReports } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const report = situationReports.find((item) => item.id === id);
+  const report = (await data.listSituationReports()).find(
+    (item) => item.id === id,
+  );
 
   if (!report) {
     return new Response("Situation report not found", { status: 404 });
   }
 
-  const incident = getIncident(report.incidentId);
+  const incident = await data.getIncident(report.incidentId);
   const body = [
     `Situation Report: ${incident?.title ?? report.incidentId}`,
     `Reporting period: ${report.reportingPeriod}`,

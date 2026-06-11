@@ -1,6 +1,8 @@
-import { incidents } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function GET() {
+  const incidents = await data.listIncidents();
+
   return Response.json({ data: incidents });
 }
 
@@ -13,7 +15,7 @@ export async function POST(request: Request) {
         id: crypto.randomUUID(),
         ...payload,
       },
-      mode: "demo",
+      mode: data.backend,
     },
     { status: 201 },
   );

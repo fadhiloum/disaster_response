@@ -10,17 +10,31 @@ import {
   StatusBadge,
 } from "@/app/components/ui";
 import {
-  dashboardSummary,
   formatDateTime,
   formatNumber,
+  type Incident,
+  type NeedReport,
+  type PartnerActivity,
+  type Resource,
+  type ResponseTask,
+} from "@/app/lib/data";
+import type { DashboardSummary } from "@/app/lib/data/repository";
+
+export function DashboardHome({
+  dashboardSummary,
   incidents,
   needReports,
   partnerActivities,
   resources,
   tasks,
-} from "@/app/lib/demo-data";
-
-export function DashboardHome() {
+}: {
+  dashboardSummary: DashboardSummary;
+  incidents: Incident[];
+  needReports: NeedReport[];
+  partnerActivities: PartnerActivity[];
+  resources: Resource[];
+  tasks: ResponseTask[];
+}) {
   const urgentNeeds = needReports.filter(
     (need) => need.urgency === "high" || need.urgency === "critical",
   );
@@ -82,7 +96,7 @@ export function DashboardHome() {
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-          <OpsMap compact />
+          <OpsMap compact incidents={incidents} />
 
           <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
             <SectionHeader

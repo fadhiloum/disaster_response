@@ -1,5 +1,10 @@
 import Link from "next/link";
-import type { IncidentStatus, NeedStatus, Severity, TaskStatus } from "@/app/lib/demo-data";
+import type {
+  IncidentStatus,
+  NeedStatus,
+  Severity,
+  TaskStatus,
+} from "@/app/lib/data";
 
 type Tone = "red" | "amber" | "green" | "blue" | "gray" | "violet";
 

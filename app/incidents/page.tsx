@@ -1,9 +1,11 @@
 import { AppShell } from "@/app/components/app-shell";
 import { CommandLink } from "@/app/components/ui";
-import { incidents } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 import { IncidentsWorkspace } from "./incidents-workspace";
 
-export default function IncidentsPage() {
+export default async function IncidentsPage() {
+  const incidents = await data.listIncidents();
+
   return (
     <AppShell active="Incidents">
       <div className="space-y-6">

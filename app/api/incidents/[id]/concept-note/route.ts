@@ -2,12 +2,9 @@ import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import {
   formatDateTime,
   formatNumber,
-  getIncident,
-  getIncidentActivities,
-  getIncidentNeeds,
-  getIncidentResources,
-  getIncidentTeams,
-} from "@/app/lib/demo-data";
+  data,
+  type NeedReport,
+} from "@/app/lib/data";
 
 const docxContentType =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -17,7 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const incident = getIncident(id);
+  const incident = await data.getIncident(id);
 
   if (!incident) {
     return new Response("Incident not found", { status: 404 });
@@ -34,10 +31,10 @@ export async function GET(
   const templateBytes = new Uint8Array(await templateResponse.arrayBuffer());
   const files = unzipSync(templateBytes);
   const documentXml = strFromU8(files["word/document.xml"]);
-  const needs = getIncidentNeeds(incident.id);
-  const activities = getIncidentActivities(incident.id);
-  const assignedResources = getIncidentResources(incident.id);
-  const teams = getIncidentTeams(incident.id);
+  const needs = await data.getIncidentNeeds(incident.id);
+  const activities = await data.getIncidentActivities(incident.id);
+  const assignedResources = await data.getIncidentResources(incident.id);
+  const teams = await data.getIncidentTeams(incident.id);
 
   const location = [
     incident.locationName,
@@ -132,7 +129,7 @@ export async function GET(
 
 function sectorSummary(
   disasterType: string,
-  needs: ReturnType<typeof getIncidentNeeds>,
+  needs: NeedReport[],
 ) {
   const categories = Array.from(new Set(needs.map((need) => need.category)));
 

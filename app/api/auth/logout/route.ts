@@ -3,6 +3,6 @@ export async function POST() {
     data: {
       ok: true,
     },
-    mode: "demo",
+    mode: process.env.DATA_BACKEND ?? "demo",
   });
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Icon, type IconName } from "@/app/components/icons";
-import { currentUser } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 const navigation = [
   { href: "/", icon: "dashboard", label: "Dashboard" },
@@ -12,13 +12,15 @@ const navigation = [
   { href: "/admin", icon: "admin", label: "Admin" },
 ] satisfies Array<{ href: string; icon: IconName; label: string }>;
 
-export function AppShell({
+export async function AppShell({
   active,
   children,
 }: {
   active: string;
   children: React.ReactNode;
 }) {
+  const currentUser = await data.getCurrentUser();
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] text-zinc-950">
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col lg:flex-row">

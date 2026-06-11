@@ -1,9 +1,11 @@
 import { AppShell } from "@/app/components/app-shell";
 import { OpsMap } from "@/app/components/ops-map";
 import { SectionHeader, StatusBadge } from "@/app/components/ui";
-import { formatNumber, incidents } from "@/app/lib/demo-data";
+import { data, formatNumber } from "@/app/lib/data";
 
-export default function MapPage() {
+export default async function MapPage() {
+  const incidents = await data.listIncidents();
+
   return (
     <AppShell active="Map">
       <div className="space-y-6">
@@ -70,7 +72,7 @@ export default function MapPage() {
             </div>
           </aside>
 
-          <OpsMap />
+          <OpsMap incidents={incidents} />
         </section>
       </div>
     </AppShell>

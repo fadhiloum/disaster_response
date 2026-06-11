@@ -1,6 +1,8 @@
-import { resources } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function GET() {
+  const resources = await data.listResources();
+
   return Response.json({ data: resources });
 }
 
@@ -14,7 +16,7 @@ export async function POST(request: Request) {
         quantityCommitted: 0,
         ...payload,
       },
-      mode: "demo",
+      mode: data.backend,
     },
     { status: 201 },
   );

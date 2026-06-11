@@ -1,11 +1,11 @@
-import { getIncident } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const incident = getIncident(id);
+  const incident = await data.getIncident(id);
 
   if (!incident) {
     return Response.json({ error: "Incident not found" }, { status: 404 });
@@ -19,7 +19,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const incident = getIncident(id);
+  const incident = await data.getIncident(id);
 
   if (!incident) {
     return Response.json({ error: "Incident not found" }, { status: 404 });
@@ -33,7 +33,7 @@ export async function PATCH(
       ...payload,
       id: incident.id,
     },
-    mode: "demo",
+    mode: data.backend,
   });
 }
 
@@ -42,11 +42,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const incident = getIncident(id);
+  const incident = await data.getIncident(id);
 
   if (!incident) {
     return Response.json({ error: "Incident not found" }, { status: 404 });
   }
 
-  return Response.json({ data: { id }, mode: "demo" });
+  return Response.json({ data: { id }, mode: data.backend });
 }
