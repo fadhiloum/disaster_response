@@ -1,8 +1,8 @@
-import { currentUser } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function POST() {
   return Response.json({
-    data: currentUser,
-    mode: "demo",
+    data: await data.getCurrentUser(),
+    mode: data.backend,
   });
 }

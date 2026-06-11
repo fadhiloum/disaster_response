@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { AppShell } from "@/app/components/app-shell";
 import { CommandLink, SectionHeader } from "@/app/components/ui";
-import { getIncident, situationReports } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
-export default function SitRepsPage() {
+export default async function SitRepsPage() {
+  const [incidents, situationReports] = await Promise.all([
+    data.listIncidents(),
+    data.listSituationReports(),
+  ]);
+  const incidentsById = new Map(
+    incidents.map((incident) => [incident.id, incident]),
+  );
+
   return (
     <AppShell active="SitReps">
       <div className="space-y-6">
@@ -28,7 +36,7 @@ export default function SitRepsPage() {
             <SectionHeader title="Reports" />
             <div className="mt-4 space-y-3">
               {situationReports.map((report) => {
-                const incident = getIncident(report.incidentId);
+                const incident = incidentsById.get(report.incidentId);
 
                 return (
                   <Link
@@ -54,7 +62,7 @@ export default function SitRepsPage() {
           <article className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
             <SectionHeader title="Latest Report Preview" />
             {situationReports.map((report) => {
-              const incident = getIncident(report.incidentId);
+              const incident = incidentsById.get(report.incidentId);
 
               return (
                 <div className="mt-5 space-y-5" key={report.id}>

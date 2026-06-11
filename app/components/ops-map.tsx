@@ -1,15 +1,16 @@
 import Link from "next/link";
 import {
   formatNumber,
-  incidents,
   type Incident,
-} from "@/app/lib/demo-data";
+} from "@/app/lib/data";
 import { SeverityBadge, StatusBadge } from "@/app/components/ui";
 
 export function OpsMap({
+  incidents,
   focusIncident,
   compact = false,
 }: {
+  incidents: Incident[];
   focusIncident?: Incident;
   compact?: boolean;
 }) {

@@ -1,4 +1,4 @@
-import { getIncident, getIncidentTasks } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function GET(
   _request: Request,
@@ -6,11 +6,11 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  if (!getIncident(id)) {
+  if (!(await data.getIncident(id))) {
     return Response.json({ error: "Incident not found" }, { status: 404 });
   }
 
-  return Response.json({ data: getIncidentTasks(id) });
+  return Response.json({ data: await data.getIncidentTasks(id) });
 }
 
 export async function POST(
@@ -19,7 +19,7 @@ export async function POST(
 ) {
   const { id } = await params;
 
-  if (!getIncident(id)) {
+  if (!(await data.getIncident(id))) {
     return Response.json({ error: "Incident not found" }, { status: 404 });
   }
 
@@ -33,7 +33,7 @@ export async function POST(
         status: "todo",
         ...payload,
       },
-      mode: "demo",
+      mode: data.backend,
     },
     { status: 201 },
   );

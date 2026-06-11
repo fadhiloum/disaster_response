@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/app/components/app-shell";
 import { CommandLink, SecondaryLink } from "@/app/components/ui";
-import { getIncident, incidents } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 const disasterTypes = [
   "flood",
@@ -14,7 +14,9 @@ const disasterTypes = [
   "other",
 ];
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const incidents = await data.listIncidents();
+
   return incidents.map((incident) => ({ id: incident.id }));
 }
 
@@ -24,7 +26,7 @@ export default async function EditIncidentPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const incident = getIncident(id);
+  const incident = await data.getIncident(id);
 
   if (!incident) {
     notFound();

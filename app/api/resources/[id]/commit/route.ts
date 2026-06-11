@@ -1,11 +1,11 @@
-import { resources } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const resource = resources.find((item) => item.id === id);
+  const resource = (await data.listResources()).find((item) => item.id === id);
 
   if (!resource) {
     return Response.json({ error: "Resource not found" }, { status: 404 });
@@ -27,6 +27,6 @@ export async function POST(
       quantityCommitted: resource.quantityCommitted + quantity,
       assignedIncidentId: payload.incidentId ?? resource.assignedIncidentId,
     },
-    mode: "demo",
+    mode: data.backend,
   });
 }

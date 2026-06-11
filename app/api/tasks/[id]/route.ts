@@ -1,11 +1,11 @@
-import { tasks } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const task = tasks.find((item) => item.id === id);
+  const task = (await data.listTasks()).find((item) => item.id === id);
 
   if (!task) {
     return Response.json({ error: "Task not found" }, { status: 404 });
@@ -19,6 +19,6 @@ export async function PATCH(
       ...payload,
       id: task.id,
     },
-    mode: "demo",
+    mode: data.backend,
   });
 }

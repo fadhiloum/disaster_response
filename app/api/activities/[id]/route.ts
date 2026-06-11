@@ -1,11 +1,13 @@
-import { partnerActivities } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const activity = partnerActivities.find((item) => item.id === id);
+  const activity = (await data.listPartnerActivities()).find(
+    (item) => item.id === id,
+  );
 
   if (!activity) {
     return Response.json({ error: "Activity not found" }, { status: 404 });
@@ -19,6 +21,6 @@ export async function PATCH(
       ...payload,
       id: activity.id,
     },
-    mode: "demo",
+    mode: data.backend,
   });
 }

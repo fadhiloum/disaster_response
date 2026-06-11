@@ -3,8 +3,13 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Badge, SectionHeader, StatusBadge } from "@/app/components/ui";
-import type { DeployedTeam, Incident, Resource } from "@/app/lib/demo-data";
-import { formatDateTime, formatNumber } from "@/app/lib/demo-data";
+import {
+  formatDateTime,
+  formatNumber,
+  type DeployedTeam,
+  type Incident,
+  type Resource,
+} from "@/app/lib/data";
 
 type Tab = "items" | "teams";
 

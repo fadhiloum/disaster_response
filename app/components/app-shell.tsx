@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { currentUser } from "@/app/lib/demo-data";
+import { data } from "@/app/lib/data";
 
 const navigation = [
   { href: "/", label: "Dashboard" },
@@ -10,13 +10,15 @@ const navigation = [
   { href: "/admin", label: "Admin" },
 ];
 
-export function AppShell({
+export async function AppShell({
   active,
   children,
 }: {
   active: string;
   children: React.ReactNode;
 }) {
+  const currentUser = await data.getCurrentUser();
+
   return (
     <div className="min-h-screen bg-[#f4f1ec] text-zinc-950">
       <div className="mx-auto flex min-h-screen max-w-[1600px] flex-col lg:flex-row">
