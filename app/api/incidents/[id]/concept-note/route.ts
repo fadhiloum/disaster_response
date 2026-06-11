@@ -118,9 +118,11 @@ export async function GET(
   files["word/document.xml"] = strToU8(updatedDocumentXml);
 
   const body = zipSync(files, { level: 6 });
+  const responseBody = new ArrayBuffer(body.byteLength);
+  new Uint8Array(responseBody).set(body);
   const filename = `${incident.id}-concept-note.docx`;
 
-  return new Response(body, {
+  return new Response(responseBody, {
     headers: {
       "content-disposition": `attachment; filename="${filename}"`,
       "content-type": docxContentType,
