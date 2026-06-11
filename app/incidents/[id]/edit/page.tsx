@@ -36,7 +36,7 @@ export default async function EditIncidentPage({
     <AppShell active="Incidents">
       <div className="space-y-6">
         <header>
-          <Link className="text-sm font-semibold text-teal-700" href="/incidents">
+          <Link className="text-sm font-semibold text-[#244a9b]" href="/incidents">
             Back to incidents
           </Link>
           <h1 className="mt-3 text-3xl font-semibold text-zinc-950">

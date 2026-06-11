@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Icon, type IconName } from "@/app/components/icons";
 import { Badge, SectionHeader, StatusBadge } from "@/app/components/ui";
 import {
   formatDateTime,
@@ -12,6 +13,11 @@ import {
 } from "@/app/lib/data";
 
 type Tab = "items" | "teams";
+
+const tabs = [
+  { icon: "items", id: "items", label: "Items" },
+  { icon: "teams", id: "teams", label: "Teams" },
+] satisfies Array<{ icon: IconName; id: Tab; label: string }>;
 
 type DeploymentLogEntry = {
   id: string;
@@ -157,12 +163,16 @@ export function DeploymentWorkspace({
   return (
     <div className="space-y-6">
       <div className="flex gap-2 overflow-x-auto rounded-lg border border-zinc-200 bg-white p-2 shadow-sm">
-        <TabButton active={activeTab === "items"} onClick={() => setActiveTab("items")}>
-          Items
-        </TabButton>
-        <TabButton active={activeTab === "teams"} onClick={() => setActiveTab("teams")}>
-          Teams
-        </TabButton>
+        {tabs.map((tab) => (
+          <TabButton
+            active={activeTab === tab.id}
+            icon={tab.icon}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </TabButton>
+        ))}
       </div>
 
       {activeTab === "items" ? (
@@ -170,7 +180,7 @@ export function DeploymentWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 p-4">
             <SectionHeader title="FIFO Item Deployment" />
             <button
-              className="inline-flex min-h-10 items-center justify-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+              className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82]"
               onClick={confirmItemDeployment}
               type="button"
             >
@@ -202,7 +212,7 @@ export function DeploymentWorkspace({
                       <td className="px-4 py-4">
                         <input
                           checked={Boolean(selected[resource.id])}
-                          className="h-4 w-4 accent-teal-700"
+                          className="h-4 w-4 accent-[#244a9b]"
                           disabled={free <= 0}
                           onChange={(event) =>
                             setSelected((current) => ({
@@ -374,7 +384,7 @@ export function DeploymentWorkspace({
                 />
               </Field>
               <button
-                className="inline-flex min-h-10 items-center justify-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82]"
                 onClick={confirmTeamDeployment}
                 type="button"
               >
@@ -401,7 +411,7 @@ export function DeploymentWorkspace({
                     <p className="mt-3 text-sm text-zinc-600">{team.members}</p>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
                       <Link
-                        className="font-semibold text-teal-700"
+                        className="font-semibold text-[#244a9b]"
                         href={`/incidents/${team.incidentId}`}
                       >
                         {incident?.title ?? team.incidentId}
@@ -424,22 +434,25 @@ export function DeploymentWorkspace({
 function TabButton({
   active,
   children,
+  icon,
   onClick,
 }: {
   active: boolean;
   children: React.ReactNode;
+  icon: IconName;
   onClick: () => void;
 }) {
   return (
     <button
-      className={`min-h-9 rounded-md px-4 text-sm font-semibold transition ${
+      className={`inline-flex min-h-9 items-center gap-2 rounded-md px-4 text-sm font-semibold transition ${
         active
-          ? "bg-zinc-950 text-white"
-          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
+          ? "bg-[#244a9b] text-white"
+          : "text-zinc-600 hover:bg-[#eef3ff] hover:text-[#244a9b]"
       }`}
       onClick={onClick}
       type="button"
     >
+      <Icon className="h-4 w-4" name={icon} />
       {children}
     </button>
   );

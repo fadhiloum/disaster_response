@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f1ec;
+  --background: #f5f7fb;
   --foreground: #18181b;
 }
 
@@ -45,6 +45,6 @@ textarea {
 }
 
 .input:focus {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+  border-color: #244a9b;
+  box-shadow: 0 0 0 3px rgba(36, 74, 155, 0.16);
 }

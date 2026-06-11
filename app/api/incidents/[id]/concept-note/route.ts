@@ -139,8 +139,8 @@ function sectorSummary(
 }
 
 function replaceValueCell(xml: string, label: string, paragraphs: string[]) {
-  return xml.replace(/<w:tr[\s\S]*?<\/w:tr>/g, (row) => {
-    const cells = row.match(/<w:tc[\s\S]*?<\/w:tc>/g);
+  return xml.replace(/<w:tr(?:\s|>)[\s\S]*?<\/w:tr>/g, (row) => {
+    const cells = row.match(/<w:tc(?:\s|>)[\s\S]*?<\/w:tc>/g);
 
     if (!cells || cells.length < 2 || cellText(cells[0]) !== label) {
       return row;
@@ -156,14 +156,14 @@ function replaceValueCell(xml: string, label: string, paragraphs: string[]) {
 }
 
 function replaceCellContent(cell: string, content: string) {
-  const open = cell.match(/^<w:tc[^>]*>/)?.[0] ?? "<w:tc>";
+  const open = cell.match(/^<w:tc(?:\s[^>]*)?>/)?.[0] ?? "<w:tc>";
   const properties = cell.match(/<w:tcPr[\s\S]*?<\/w:tcPr>/)?.[0] ?? "";
 
   return `${open}${properties}${content}</w:tc>`;
 }
 
 function cellText(cell: string) {
-  return Array.from(cell.matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/g))
+  return Array.from(cell.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g))
     .map((match) => match[1])
     .join("")
     .trim();

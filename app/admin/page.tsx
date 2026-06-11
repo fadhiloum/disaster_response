@@ -32,7 +32,7 @@ export default async function AdminPage() {
     <AppShell active="Admin">
       <div className="space-y-6">
         <header>
-          <p className="text-sm font-semibold text-teal-700">Administration</p>
+          <p className="text-sm font-semibold text-[#244a9b]">Administration</p>
           <h1 className="mt-2 text-3xl font-semibold text-zinc-950">
             Users and Organizations
           </h1>

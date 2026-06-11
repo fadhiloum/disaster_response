@@ -116,7 +116,7 @@ export function CommandLink({
 }) {
   return (
     <Link
-      className="inline-flex min-h-10 items-center justify-center rounded-md bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+      className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82] focus:outline-none focus:ring-2 focus:ring-[#244a9b] focus:ring-offset-2"
       href={href}
     >
       {children}
@@ -133,7 +133,7 @@ export function SecondaryLink({
 }) {
   return (
     <Link
-      className="inline-flex min-h-10 items-center justify-center rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+      className="inline-flex min-h-10 items-center justify-center rounded-md border border-[#d8e0f3] bg-white px-4 text-sm font-semibold text-[#244a9b] transition hover:border-[#244a9b] hover:bg-[#eef3ff] focus:outline-none focus:ring-2 focus:ring-[#244a9b] focus:ring-offset-2"
       href={href}
     >
       {children}
