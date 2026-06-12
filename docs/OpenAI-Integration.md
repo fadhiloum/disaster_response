@@ -2,10 +2,10 @@
 
 ## Current Scope
 
-The app includes a server-side OpenAI integration for AI-assisted situation
-report drafting.
+The app includes server-side OpenAI integrations for AI-assisted situation
+report and concept note drafting.
 
-Implemented flow:
+Implemented SitRep flow:
 
 1. User opens a program detail page.
 2. User clicks `Generate SitRep` at the top of the page or `Generate with AI`
@@ -21,6 +21,24 @@ Implemented flow:
 
 The generated text is not saved automatically. A coordinator must review and
 save the draft before it becomes a SitRep record.
+
+Implemented concept note flow:
+
+1. User opens a program detail page.
+2. User clicks `Draft with AI` in the Concept Note section.
+3. The client calls `POST /api/ai/incidents/[id]/concept-note`.
+4. The route loads program context, needs, tasks, deployment, partners, budget
+   controls, and recent SitReps.
+5. The response is returned as editable concept note text.
+6. The coordinator can save the reviewed draft as a new version through
+   `POST /api/incidents/[id]/concept-note`.
+7. The coordinator can export the template-backed DOCX concept note through
+   `GET /api/incidents/[id]/concept-note`.
+
+Saved concept notes are versioned per program. The DOCX export uses the latest
+saved concept note sections by default, can export a selected version with
+`?conceptNoteId=...`, and falls back to current program data when no saved note
+exists.
 
 ## Environment Variables
 
@@ -39,7 +57,7 @@ Rules:
 - Do not prefix the key with `NEXT_PUBLIC_`.
 - `OPENAI_MODEL` is optional. If it is not set, the app uses `gpt-5.5`.
 - `OPENAI_REQUEST_TIMEOUT_MS` is optional. If it is not set, the app waits up to
-  30 seconds for a SitRep draft.
+  30 seconds for an AI draft.
 - The app can still build without `OPENAI_API_KEY`; the endpoint returns a
   clear `503` if the key is missing at runtime.
 
@@ -60,6 +78,13 @@ Rules:
   - Sends a constrained operational prompt to the Responses API.
   - Returns `{ data: { draft, incidentId, model, sources } }`.
 
+- `app/api/ai/incidents/[id]/concept-note/route.ts`
+  - Server-only route for concept note drafting.
+  - Loads program, needs, tasks, resources, teams, partner activities, budget
+    controls, and previous reports.
+  - Sends a constrained concept note prompt to the Responses API.
+  - Returns `{ data: { draft, incidentId, model } }`.
+
 - `app/incidents/[id]/ai-sitrep-draft.tsx`
   - Client component that calls the route.
   - Shows loading and error states.
@@ -67,13 +92,35 @@ Rules:
   - Displays web sources returned by the API as clickable links.
   - Saves reviewed drafts through the SitRep POST route.
 
+- `app/incidents/[id]/ai-concept-note-draft.tsx`
+  - Client component that calls the concept note route.
+  - Shows loading and error states.
+  - Displays the generated draft in an editable textarea.
+  - Loads saved concept note versions.
+  - Restores selected versions into the editor.
+  - Saves reviewed drafts as new versions and links to selected-version DOCX
+    export.
+
 - `app/incidents/[id]/page.tsx`
-  - Renders the AI drafting panel inside the Situation Reports section.
+  - Renders the AI drafting panels inside the Concept Note and Situation
+    Reports sections.
 
 ## Endpoint
 
 ```http
 POST /api/ai/incidents/:id/situation-report
+```
+
+```http
+POST /api/ai/incidents/:id/concept-note
+```
+
+```http
+POST /api/incidents/:id/concept-note
+```
+
+```http
+GET /api/incidents/:id/concept-note
 ```
 
 Success response:
@@ -107,6 +154,29 @@ Generate a draft:
 ```bash
 curl -s -X POST \
   http://localhost:3000/api/ai/incidents/flood-riverside/situation-report
+```
+
+Generate a concept note draft:
+
+```bash
+curl -s -X POST \
+  http://localhost:3000/api/ai/incidents/flood-riverside/concept-note
+```
+
+Save a reviewed concept note draft:
+
+```bash
+curl -s -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"content":"## Background\nReviewed concept note draft"}' \
+  http://localhost:3000/api/incidents/flood-riverside/concept-note
+```
+
+Export a specific saved concept note version:
+
+```bash
+curl -s -OJ \
+  'http://localhost:3000/api/incidents/flood-riverside/concept-note?conceptNoteId=concept-note-id'
 ```
 
 Verify unknown program handling:
@@ -150,7 +220,7 @@ Treat AI output as a draft.
 
 Recommended production hardening:
 
-- Add authentication and role checks to the AI route.
+- Add reviewed or approved status transitions for concept note versions.
 - Add per-user or per-program rate limits.
 - Add request logging for timestamp, user, program ID, and model, but avoid
   storing full prompts by default.

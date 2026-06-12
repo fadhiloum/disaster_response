@@ -137,6 +137,17 @@ export type SituationReport = {
   createdAt: string;
 };
 
+export type ConceptNote = {
+  id: string;
+  incidentId: string;
+  version: number;
+  content: string;
+  status: "draft" | "reviewed" | "approved";
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -619,6 +630,8 @@ export const situationReports: SituationReport[] = [
     createdAt: "2026-06-11T09:20:00+07:00",
   },
 ];
+
+export const conceptNotes: ConceptNote[] = [];
 
 export function getIncident(id: string) {
   return incidents.find((incident) => incident.id === id);

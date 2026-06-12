@@ -1,4 +1,5 @@
 export type {
+  ConceptNote,
   DeployedTeam,
   FundRequest,
   FundRequestStatus,
@@ -18,4 +19,3 @@ export type {
 } from "@/app/lib/demo-data";
 
 export { formatCurrency, formatDateTime, formatNumber } from "@/app/lib/demo-data";
-

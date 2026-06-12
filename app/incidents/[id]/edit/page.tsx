@@ -14,11 +14,7 @@ const disasterTypes = [
   "other",
 ];
 
-export async function generateStaticParams() {
-  const incidents = await data.listIncidents();
-
-  return incidents.map((incident) => ({ id: incident.id }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function EditIncidentPage({
   params,

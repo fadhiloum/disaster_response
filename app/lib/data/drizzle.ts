@@ -59,6 +59,18 @@ export const drizzleRepository: DataRepository = {
   async createSituationReport() {
     return unavailable();
   },
+  async getIncidentConceptNote() {
+    return unavailable();
+  },
+  async getIncidentConceptNotes() {
+    return unavailable();
+  },
+  async getConceptNote() {
+    return unavailable();
+  },
+  async createIncidentConceptNoteVersion() {
+    return unavailable();
+  },
   async getDashboardSummary() {
     return unavailable();
   },
