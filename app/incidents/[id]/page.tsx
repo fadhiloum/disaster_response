@@ -17,6 +17,7 @@ import {
   formatNumber,
 } from "@/app/lib/data";
 import { getSessionUser } from "@/app/lib/auth";
+import { AiConceptNoteDraft } from "./ai-concept-note-draft";
 import { AiSitrepDraft } from "./ai-sitrep-draft";
 
 const incidentTabs = [
@@ -26,6 +27,7 @@ const incidentTabs = [
   { icon: "tasks", id: "tasks", label: "Tasks" },
   { icon: "deployment", id: "deployment", label: "Deployment" },
   { icon: "partners", id: "partners", label: "Partners" },
+  { icon: "report", id: "concept-note", label: "Concept Note" },
   { icon: "report", id: "sitreps", label: "SitReps" },
 ] satisfies Array<{ icon: IconName; id: string; label: string }>;
 
@@ -53,6 +55,7 @@ export default async function IncidentDetailPage({
     assignedResources,
     deployedTeams,
     currentUser,
+    savedConceptNote,
   ] = await Promise.all([
     data.listIncidents(),
     data.getIncidentNeeds(incident.id),
@@ -62,6 +65,7 @@ export default async function IncidentDetailPage({
     data.getIncidentResources(incident.id),
     data.getIncidentTeams(incident.id),
     getSessionUser(),
+    data.getIncidentConceptNote(incident.id),
   ]);
   const totalFundRequested = incident.fundRequests.reduce(
     (total, request) => total + request.amount,
@@ -374,6 +378,21 @@ export default async function IncidentDetailPage({
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section
+          className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm"
+          id="concept-note"
+        >
+          <SectionHeader title="Concept Note" />
+          <div className="mt-4">
+            <AiConceptNoteDraft
+              currentUserRole={currentUser?.role ?? null}
+              incidentId={incident.id}
+              initialDraft={savedConceptNote?.content ?? ""}
+              savedAt={savedConceptNote?.updatedAt ?? null}
+            />
           </div>
         </section>
 

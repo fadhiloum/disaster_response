@@ -112,6 +112,12 @@ export const data: DataRepository = {
   async createSituationReport(input) {
     return (await getRepository()).createSituationReport(input);
   },
+  async getIncidentConceptNote(id) {
+    return (await getRepository()).getIncidentConceptNote(id);
+  },
+  async upsertIncidentConceptNote(input) {
+    return (await getRepository()).upsertIncidentConceptNote(input);
+  },
   async getDashboardSummary() {
     return (await getRepository()).getDashboardSummary();
   },
@@ -119,6 +125,7 @@ export const data: DataRepository = {
 
 export type { DataBackend, DataRepository } from "./repository";
 export type {
+  ConceptNote,
   DeployedTeam,
   FundRequest,
   FundRequestStatus,

@@ -86,6 +86,7 @@ model User {
   assignedTasks  Task[]            @relation("TaskAssignee")
   createdTasks   Task[]            @relation("TaskCreator")
   sitreps        SituationReport[] @relation("SitRepCreator")
+  conceptNotes   ConceptNote[]     @relation("ConceptNoteCreator")
   createdAt      DateTime          @default(now())
 }
 
@@ -122,6 +123,7 @@ model Incident {
   tasks              Task[]
   partnerActivities  PartnerActivity[]
   situationReports   SituationReport[]
+  conceptNote        ConceptNote?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -244,4 +246,15 @@ model SituationReport {
   createdById          String
   createdBy            User     @relation("SitRepCreator", fields: [createdById], references: [id])
   createdAt            DateTime @default(now())
+}
+
+model ConceptNote {
+  id          String   @id @default(cuid())
+  incidentId  String   @unique
+  incident    Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  content     String
+  createdById String
+  createdBy   User     @relation("ConceptNoteCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

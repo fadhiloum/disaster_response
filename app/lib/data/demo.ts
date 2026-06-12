@@ -1,5 +1,6 @@
 import {
   currentUser,
+  conceptNotes,
   dashboardSummary,
   deployedTeams,
   getIncident,
@@ -95,6 +96,36 @@ export const demoRepository: DataRepository = {
     situationReports.unshift(report);
 
     return report;
+  },
+  async getIncidentConceptNote(id) {
+    return conceptNotes.find((note) => note.incidentId === id);
+  },
+  async upsertIncidentConceptNote(input) {
+    const now = new Date().toISOString();
+    const existing = conceptNotes.find(
+      (note) => note.incidentId === input.incidentId,
+    );
+
+    if (existing) {
+      existing.content = input.content;
+      existing.updatedAt = now;
+      existing.updatedBy = input.updatedBy ?? currentUser.name;
+
+      return existing;
+    }
+
+    const note = {
+      id: crypto.randomUUID(),
+      incidentId: input.incidentId,
+      content: input.content,
+      updatedBy: input.updatedBy ?? currentUser.name,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    conceptNotes.unshift(note);
+
+    return note;
   },
   async getDashboardSummary() {
     return dashboardSummary;

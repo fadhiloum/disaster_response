@@ -1,4 +1,5 @@
 import type {
+  ConceptNote as PrismaConceptNote,
   DisasterType,
   Incident as PrismaIncident,
   NeedReport as PrismaNeedReport,
@@ -13,6 +14,7 @@ import type {
 } from "@prisma/client";
 import { prisma } from "./prisma-client";
 import type {
+  ConceptNote,
   Incident,
   IncidentStatus,
   NeedReport,
@@ -30,6 +32,7 @@ import type {
   CreateSituationReportInput,
   DataRepository,
   DashboardSummary,
+  UpsertConceptNoteInput,
 } from "./repository";
 
 type UserWithOrg = PrismaUser & { organization: Organization | null };
@@ -46,6 +49,7 @@ type NeedWithReporter = PrismaNeedReport & { reportedBy: PrismaUser };
 type TaskWithAssignee = PrismaTask & { assignee: PrismaUser | null };
 type ActivityWithOrg = PrismaPartnerActivity & { organization: Organization };
 type SitrepWithCreator = PrismaSituationReport & { createdBy: PrismaUser };
+type ConceptNoteWithCreator = PrismaConceptNote & { createdBy: PrismaUser };
 
 const roleLabels: Record<PrismaRole, Role> = {
   ADMIN: "Admin",
@@ -244,6 +248,17 @@ function mapSitrep(sitrep: SitrepWithCreator): SituationReport {
   };
 }
 
+function mapConceptNote(note: ConceptNoteWithCreator): ConceptNote {
+  return {
+    id: note.id,
+    incidentId: note.incidentId,
+    content: note.content,
+    updatedBy: note.createdBy.name,
+    createdAt: note.createdAt.toISOString(),
+    updatedAt: note.updatedAt.toISOString(),
+  };
+}
+
 function toDate(value: string | undefined, fallback: Date) {
   if (!value) {
     return fallback;
@@ -420,6 +435,41 @@ export const prismaRepository: DataRepository = {
     });
 
     return mapSitrep(report);
+  },
+  async getIncidentConceptNote(id) {
+    const note = await prisma.conceptNote.findUnique({
+      where: { incidentId: id },
+      include: { createdBy: true },
+    });
+
+    return note ? mapConceptNote(note) : undefined;
+  },
+  async upsertIncidentConceptNote(input: UpsertConceptNoteInput) {
+    const currentUser = await prisma.user.findFirst({
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!currentUser) {
+      throw new Error("Cannot save a concept note without a user.");
+    }
+
+    const note = await prisma.conceptNote.upsert({
+      create: {
+        incidentId: input.incidentId,
+        content: input.content,
+        createdById: currentUser.id,
+      },
+      update: {
+        content: input.content,
+      },
+      where: { incidentId: input.incidentId },
+      include: { createdBy: true },
+    });
+
+    return {
+      ...mapConceptNote(note),
+      updatedBy: input.updatedBy ?? note.createdBy.name,
+    };
   },
   async getDashboardSummary() {
     return calculateDashboardSummary();

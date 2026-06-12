@@ -1,4 +1,5 @@
 import type {
+  ConceptNote,
   DeployedTeam,
   Incident,
   NeedReport,
@@ -32,6 +33,12 @@ export type CreateSituationReportInput = {
   nextPriorities: string;
 };
 
+export type UpsertConceptNoteInput = {
+  incidentId: string;
+  content: string;
+  updatedBy?: string;
+};
+
 export type DataRepository = {
   backend: DataBackend;
   getCurrentUser(): Promise<User>;
@@ -53,5 +60,9 @@ export type DataRepository = {
   createSituationReport(
     input: CreateSituationReportInput,
   ): Promise<SituationReport>;
+  getIncidentConceptNote(id: string): Promise<ConceptNote | undefined>;
+  upsertIncidentConceptNote(
+    input: UpsertConceptNoteInput,
+  ): Promise<ConceptNote>;
   getDashboardSummary(): Promise<DashboardSummary>;
 };
