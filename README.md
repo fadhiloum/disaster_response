@@ -65,9 +65,15 @@ The app reads data through `app/lib/data`. Select the backend with
 The database contract lives in `prisma/schema.prisma`, with `DATABASE_URL`
 documented in `.env.example`.
 
+Apply migrations and seed a Prisma-backed database with:
+
+```bash
+npm run prisma:deploy
+npm run prisma:seed
+```
+
 Next persistence tasks:
 
-- Add seed data for Prisma-backed environments.
 - Fill any remaining DTO fields that are currently derived/defaulted by the
   Prisma adapter.
 - Implement the Drizzle/D1 adapter tables if Cloudflare D1 becomes a target.
