@@ -306,6 +306,7 @@ Roles:
 * GET /api/incidents/:id/sitreps
 * POST /api/incidents/:id/sitreps
 * GET /api/sitreps/:id/export
+* POST /api/ai/incidents/:id/situation-report
 
 ## UI Pages
 
