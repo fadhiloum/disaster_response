@@ -19,7 +19,6 @@ export function NewDisasters({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const items = feed.items;
-  const activeItem = items[Math.min(activeIndex, Math.max(items.length - 1, 0))];
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayItems = useMemo(
     () => items.filter((item) => item.publishedAt.slice(0, 10) === todayKey),
@@ -28,6 +27,7 @@ export function NewDisasters({
   const dialogItems = todayItems.length > 0 ? todayItems : items;
   const dialogTitle =
     todayItems.length > 0 ? "Other Disasters Today" : "Recent Disasters";
+  const carouselItems = getCarouselItems(items, activeIndex, 4);
 
   useEffect(() => {
     if (items.length < 2) {
@@ -88,19 +88,52 @@ export function NewDisasters({
 
   return (
     <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-zinc-200 p-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-[#244a9b]">New Disasters</p>
-          <h2 className="mt-1 text-2xl font-semibold text-zinc-950">
-            {activeItem?.title ?? "Monitoring official disaster feeds"}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-600">
-            Refreshed hourly from {feed.sources.join(" and ")}. Latest items
-            stay at the front of the queue.
+      <div className="flex flex-col gap-3 border-b border-zinc-200 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-[#244a9b]">New Disasters</p>
+            <span className="rounded border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold text-zinc-500">
+              hourly
+            </span>
+            {isRefreshing ? (
+              <span className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                refreshing
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 text-sm text-zinc-500">
+            Latest official alerts from {feed.sources.join(" and ")}. Last
+            checked {formatUtcTime(feed.lastUpdatedAt)}.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1">
+            <button
+              aria-label="Previous disaster"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-white text-lg font-semibold text-zinc-700 transition hover:border-[#244a9b] hover:text-[#244a9b] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={items.length < 2}
+              onClick={() =>
+                setActiveIndex((current) =>
+                  current === 0 ? items.length - 1 : current - 1,
+                )
+              }
+              type="button"
+            >
+              &lsaquo;
+            </button>
+            <button
+              aria-label="Next disaster"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-white text-lg font-semibold text-zinc-700 transition hover:border-[#244a9b] hover:text-[#244a9b] disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={items.length < 2}
+              onClick={() =>
+                setActiveIndex((current) => (current + 1) % items.length)
+              }
+              type="button"
+            >
+              &rsaquo;
+            </button>
+          </div>
           <button
             className="inline-flex min-h-10 items-center justify-center rounded-md border border-[#d8e0f3] bg-white px-4 text-sm font-semibold text-[#244a9b] transition hover:border-[#244a9b] hover:bg-[#eef3ff] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={items.length === 0}
@@ -111,80 +144,61 @@ export function NewDisasters({
               ? `Other Disasters Today (${todayItems.length})`
               : "Recent Disasters"}
           </button>
-          {activeItem ? (
-            <a
-              className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82] focus:outline-none focus:ring-2 focus:ring-[#244a9b] focus:ring-offset-2"
-              href={activeItem.url}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Open source
-            </a>
-          ) : null}
         </div>
       </div>
 
-      <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
-        {activeItem ? (
-          <article className="rounded-md bg-[#f8fafc] p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <SeverityPill severity={activeItem.severity} />
-              <span className="rounded border border-zinc-200 bg-white px-2.5 py-1 text-xs font-semibold text-zinc-700">
-                {activeItem.source}
-              </span>
-              {activeItem.eventType ? (
-                <span className="rounded border border-zinc-200 bg-white px-2.5 py-1 text-xs font-semibold text-zinc-700">
-                  {activeItem.eventType}
-                </span>
-              ) : null}
-            </div>
-
-            <h3 className="mt-4 text-xl font-semibold leading-7 text-zinc-950">
-              {activeItem.title}
-            </h3>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-600">
-              <span>{formatUtcDateTime(activeItem.publishedAt)}</span>
-              {activeItem.location ? <span>{activeItem.location}</span> : null}
-            </div>
-            {activeItem.summary ? (
-              <p className="mt-4 text-sm leading-6 text-zinc-700">
-                {activeItem.summary}
-              </p>
-            ) : null}
-
-            <div className="mt-5 flex items-center justify-between gap-3">
-              <div className="flex gap-2">
-                <button
-                  aria-label="Previous disaster"
-                  className="flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-white text-lg font-semibold text-zinc-700 transition hover:border-[#244a9b] hover:text-[#244a9b] disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={items.length < 2}
-                  onClick={() =>
-                    setActiveIndex((current) =>
-                      current === 0 ? items.length - 1 : current - 1,
-                    )
-                  }
-                  type="button"
+      <div className="p-3">
+        {carouselItems.length > 0 ? (
+          <>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {carouselItems.map((item, index) => (
+                <a
+                  className={`flex min-h-36 flex-col rounded-md border p-3 transition hover:border-[#244a9b] hover:bg-[#f8fbff] ${
+                    index === 0
+                      ? "border-[#244a9b] bg-[#eef3ff]"
+                      : "border-zinc-200 bg-white"
+                  }`}
+                  href={item.url}
+                  key={`${item.id}-${index}`}
+                  rel="noreferrer"
+                  target="_blank"
                 >
-                  &lsaquo;
-                </button>
-                <button
-                  aria-label="Next disaster"
-                  className="flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-white text-lg font-semibold text-zinc-700 transition hover:border-[#244a9b] hover:text-[#244a9b] disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={items.length < 2}
-                  onClick={() =>
-                    setActiveIndex((current) => (current + 1) % items.length)
-                  }
-                  type="button"
-                >
-                  &rsaquo;
-                </button>
-              </div>
-              <p className="text-xs font-semibold text-zinc-500">
-                Last checked {formatUtcTime(feed.lastUpdatedAt)}
-                {isRefreshing ? " | refreshing" : ""}
-              </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <SeverityPill severity={item.severity} />
+                    <span className="rounded border border-zinc-200 bg-white px-2 py-0.5 text-xs font-semibold text-zinc-600">
+                      {item.source}
+                    </span>
+                  </div>
+                  <h3 className="mt-3 overflow-hidden text-sm font-semibold leading-5 text-zinc-950 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 overflow-hidden text-xs leading-5 text-zinc-500 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
+                    {[formatUtcDateTime(item.publishedAt), item.eventType, item.location]
+                      .filter(Boolean)
+                      .join(" | ")}
+                  </p>
+                  <span className="mt-auto pt-3 text-xs font-semibold text-[#244a9b]">
+                    Open source
+                  </span>
+                </a>
+              ))}
             </div>
-          </article>
+            <div className="mt-3 flex items-center justify-center gap-1.5">
+              {items.slice(0, Math.min(items.length, 8)).map((item, index) => (
+                <button
+                  aria-label={`Show disaster ${index + 1}`}
+                  className={`h-2 rounded-full transition ${
+                    index === activeIndex
+                      ? "w-6 bg-[#244a9b]"
+                      : "w-2 bg-zinc-300 hover:bg-zinc-400"
+                  }`}
+                  key={item.id}
+                  onClick={() => setActiveIndex(index)}
+                  type="button"
+                />
+              ))}
+            </div>
+          </>
         ) : (
           <div className="rounded-md bg-[#f8fafc] p-4">
             <p className="font-semibold text-zinc-950">
@@ -195,47 +209,6 @@ export function NewDisasters({
             </p>
           </div>
         )}
-
-        <div>
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold uppercase text-zinc-500">
-              Latest feed
-            </h3>
-            <span className="text-xs font-semibold text-zinc-500">
-              {items.length} items
-            </span>
-          </div>
-
-          <div className="mt-3 space-y-2">
-            {items.slice(0, 5).map((item, index) => (
-              <button
-                className={`w-full rounded-md border p-3 text-left transition ${
-                  index === activeIndex
-                    ? "border-[#244a9b] bg-[#eef3ff]"
-                    : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50"
-                }`}
-                key={item.id}
-                onClick={() => setActiveIndex(index)}
-                type="button"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-zinc-100 text-xs font-semibold text-zinc-600">
-                    {index + 1}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold leading-5 text-zinc-950">
-                      {item.title}
-                    </span>
-                    <span className="mt-1 block text-xs text-zinc-500">
-                      {formatUtcDateTime(item.publishedAt)}
-                      {item.location ? ` | ${item.location}` : ""}
-                    </span>
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {feed.errors.length > 0 ? (
@@ -315,6 +288,17 @@ export function NewDisasters({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function getCarouselItems<T>(items: T[], activeIndex: number, count: number) {
+  if (items.length === 0) {
+    return [];
+  }
+
+  return Array.from(
+    { length: Math.min(items.length, count) },
+    (_, offset) => items[(activeIndex + offset) % items.length],
   );
 }
 
