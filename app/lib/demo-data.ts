@@ -140,7 +140,9 @@ export type SituationReport = {
 export type ConceptNote = {
   id: string;
   incidentId: string;
+  version: number;
   content: string;
+  status: "draft" | "reviewed" | "approved";
   updatedBy: string;
   createdAt: string;
   updatedAt: string;

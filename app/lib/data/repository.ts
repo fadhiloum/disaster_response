@@ -33,9 +33,10 @@ export type CreateSituationReportInput = {
   nextPriorities: string;
 };
 
-export type UpsertConceptNoteInput = {
+export type CreateConceptNoteVersionInput = {
   incidentId: string;
   content: string;
+  status?: ConceptNote["status"];
   updatedBy?: string;
 };
 
@@ -61,8 +62,10 @@ export type DataRepository = {
     input: CreateSituationReportInput,
   ): Promise<SituationReport>;
   getIncidentConceptNote(id: string): Promise<ConceptNote | undefined>;
-  upsertIncidentConceptNote(
-    input: UpsertConceptNoteInput,
+  getIncidentConceptNotes(id: string): Promise<ConceptNote[]>;
+  getConceptNote(id: string): Promise<ConceptNote | undefined>;
+  createIncidentConceptNoteVersion(
+    input: CreateConceptNoteVersionInput,
   ): Promise<ConceptNote>;
   getDashboardSummary(): Promise<DashboardSummary>;
 };

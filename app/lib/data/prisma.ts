@@ -32,7 +32,7 @@ import type {
   CreateSituationReportInput,
   DataRepository,
   DashboardSummary,
-  UpsertConceptNoteInput,
+  CreateConceptNoteVersionInput,
 } from "./repository";
 
 type UserWithOrg = PrismaUser & { organization: Organization | null };
@@ -252,7 +252,9 @@ function mapConceptNote(note: ConceptNoteWithCreator): ConceptNote {
   return {
     id: note.id,
     incidentId: note.incidentId,
+    version: note.version,
     content: note.content,
+    status: note.status as ConceptNote["status"],
     updatedBy: note.createdBy.name,
     createdAt: note.createdAt.toISOString(),
     updatedAt: note.updatedAt.toISOString(),
@@ -437,14 +439,32 @@ export const prismaRepository: DataRepository = {
     return mapSitrep(report);
   },
   async getIncidentConceptNote(id) {
-    const note = await prisma.conceptNote.findUnique({
+    const note = await prisma.conceptNote.findFirst({
       where: { incidentId: id },
+      include: { createdBy: true },
+      orderBy: { version: "desc" },
+    });
+
+    return note ? mapConceptNote(note) : undefined;
+  },
+  async getIncidentConceptNotes(id) {
+    const notes = await prisma.conceptNote.findMany({
+      where: { incidentId: id },
+      include: { createdBy: true },
+      orderBy: { version: "desc" },
+    });
+
+    return notes.map(mapConceptNote);
+  },
+  async getConceptNote(id) {
+    const note = await prisma.conceptNote.findUnique({
+      where: { id },
       include: { createdBy: true },
     });
 
     return note ? mapConceptNote(note) : undefined;
   },
-  async upsertIncidentConceptNote(input: UpsertConceptNoteInput) {
+  async createIncidentConceptNoteVersion(input: CreateConceptNoteVersionInput) {
     const currentUser = await prisma.user.findFirst({
       orderBy: { createdAt: "asc" },
     });
@@ -453,16 +473,18 @@ export const prismaRepository: DataRepository = {
       throw new Error("Cannot save a concept note without a user.");
     }
 
-    const note = await prisma.conceptNote.upsert({
-      create: {
+    const latest = await prisma.conceptNote.findFirst({
+      where: { incidentId: input.incidentId },
+      orderBy: { version: "desc" },
+    });
+    const note = await prisma.conceptNote.create({
+      data: {
         incidentId: input.incidentId,
+        version: (latest?.version ?? 0) + 1,
         content: input.content,
+        status: input.status ?? "draft",
         createdById: currentUser.id,
       },
-      update: {
-        content: input.content,
-      },
-      where: { incidentId: input.incidentId },
       include: { createdBy: true },
     });
 

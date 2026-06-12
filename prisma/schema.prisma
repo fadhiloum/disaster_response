@@ -123,7 +123,7 @@ model Incident {
   tasks              Task[]
   partnerActivities  PartnerActivity[]
   situationReports   SituationReport[]
-  conceptNote        ConceptNote?
+  conceptNotes       ConceptNote[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -250,11 +250,15 @@ model SituationReport {
 
 model ConceptNote {
   id          String   @id @default(cuid())
-  incidentId  String   @unique
+  incidentId  String
   incident    Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  version     Int
   content     String
+  status      String   @default("draft")
   createdById String
   createdBy   User     @relation("ConceptNoteCreator", fields: [createdById], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([incidentId, version])
 }

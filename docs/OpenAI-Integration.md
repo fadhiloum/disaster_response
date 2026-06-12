@@ -27,13 +27,15 @@ Implemented concept note flow:
 4. The route loads program context, needs, tasks, deployment, partners, budget
    controls, and recent SitReps.
 5. The response is returned as editable concept note text.
-6. The coordinator can save the reviewed draft through
+6. The coordinator can save the reviewed draft as a new version through
    `POST /api/incidents/[id]/concept-note`.
 7. The coordinator can export the template-backed DOCX concept note through
    `GET /api/incidents/[id]/concept-note`.
 
-Saved concept notes are stored per program. The DOCX export uses saved concept
-note sections when available and falls back to current program data otherwise.
+Saved concept notes are versioned per program. The DOCX export uses the latest
+saved concept note sections by default, can export a selected version with
+`?conceptNoteId=...`, and falls back to current program data when no saved note
+exists.
 
 ## Environment Variables
 
@@ -87,8 +89,10 @@ Rules:
   - Client component that calls the concept note route.
   - Shows loading and error states.
   - Displays the generated draft in an editable textarea.
-  - Loads any saved concept note draft.
-  - Saves reviewed drafts and links to the DOCX concept note export.
+  - Loads saved concept note versions.
+  - Restores selected versions into the editor.
+  - Saves reviewed drafts as new versions and links to selected-version DOCX
+    export.
 
 - `app/incidents/[id]/page.tsx`
   - Renders the AI drafting panels inside the Concept Note and Situation
@@ -155,6 +159,13 @@ curl -s -X POST \
   http://localhost:3000/api/incidents/flood-riverside/concept-note
 ```
 
+Export a specific saved concept note version:
+
+```bash
+curl -s -OJ \
+  'http://localhost:3000/api/incidents/flood-riverside/concept-note?conceptNoteId=concept-note-id'
+```
+
 Verify unknown program handling:
 
 ```bash
@@ -193,7 +204,7 @@ Treat AI output as a draft.
 
 Recommended production hardening:
 
-- Add per-user or per-program persistence history for concept note versions.
+- Add reviewed or approved status transitions for concept note versions.
 - Add per-user or per-program rate limits.
 - Add request logging for timestamp, user, program ID, and model, but avoid
   storing full prompts by default.

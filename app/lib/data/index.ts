@@ -115,8 +115,14 @@ export const data: DataRepository = {
   async getIncidentConceptNote(id) {
     return (await getRepository()).getIncidentConceptNote(id);
   },
-  async upsertIncidentConceptNote(input) {
-    return (await getRepository()).upsertIncidentConceptNote(input);
+  async getIncidentConceptNotes(id) {
+    return (await getRepository()).getIncidentConceptNotes(id);
+  },
+  async getConceptNote(id) {
+    return (await getRepository()).getConceptNote(id);
+  },
+  async createIncidentConceptNoteVersion(input) {
+    return (await getRepository()).createIncidentConceptNoteVersion(input);
   },
   async getDashboardSummary() {
     return (await getRepository()).getDashboardSummary();

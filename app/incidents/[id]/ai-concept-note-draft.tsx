@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Role } from "@/app/lib/data/types";
+import type { ConceptNote, Role } from "@/app/lib/data/types";
 
 const allowedDraftRoles: Role[] = ["Admin", "Coordinator"];
 
@@ -23,13 +23,19 @@ export function AiConceptNoteDraft({
   incidentId,
   initialDraft,
   savedAt,
+  versions,
 }: {
   currentUserRole: Role | null;
   incidentId: string;
   initialDraft?: string;
   savedAt?: string | null;
+  versions: ConceptNote[];
 }) {
   const router = useRouter();
+  const [versionHistory, setVersionHistory] = useState(versions);
+  const [selectedVersionId, setSelectedVersionId] = useState(
+    versions[0]?.id ?? "",
+  );
   const [draft, setDraft] = useState(initialDraft ?? "");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -101,7 +107,12 @@ export function AiConceptNoteDraft({
       }
 
       setDraft(payload.data.content);
-      setSavedMessage("Concept note saved.");
+      setSelectedVersionId(payload.data.id);
+      setVersionHistory((current) => [
+        payload.data,
+        ...current.filter((version) => version.id !== payload.data.id),
+      ]);
+      setSavedMessage(`Concept note saved as version ${payload.data.version}.`);
       router.refresh();
     } catch (caught) {
       setError(
@@ -111,6 +122,24 @@ export function AiConceptNoteDraft({
       setIsSaving(false);
     }
   }
+
+  function restoreVersion(versionId: string) {
+    const version = versionHistory.find((item) => item.id === versionId);
+
+    setSelectedVersionId(versionId);
+
+    if (version) {
+      setDraft(version.content);
+      setError("");
+      setSavedMessage(`Loaded version ${version.version} for review.`);
+    }
+  }
+
+  const exportHref = selectedVersionId
+    ? `/api/incidents/${incidentId}/concept-note?conceptNoteId=${encodeURIComponent(
+        selectedVersionId,
+      )}`
+    : `/api/incidents/${incidentId}/concept-note`;
 
   return (
     <div className="rounded-lg border border-[#d8e0f3] bg-[#f8faff] p-4">
@@ -142,12 +171,35 @@ export function AiConceptNoteDraft({
           </button>
           <a
             className="inline-flex min-h-10 items-center justify-center rounded-md border border-[#244a9b] bg-white px-4 text-sm font-semibold text-[#244a9b] transition hover:bg-[#eef3ff] focus:outline-none focus:ring-2 focus:ring-[#244a9b] focus:ring-offset-2"
-            href={`/api/incidents/${incidentId}/concept-note`}
+            href={exportHref}
           >
             Export DOCX
           </a>
         </div>
       </div>
+
+      {versionHistory.length ? (
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <label className="block text-sm font-semibold text-zinc-700">
+            Version history
+            <select
+              className="mt-1 block min-h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-800 outline-none focus:border-[#244a9b] focus:ring-2 focus:ring-[#244a9b]/20"
+              onChange={(event) => restoreVersion(event.target.value)}
+              value={selectedVersionId}
+            >
+              {versionHistory.map((version) => (
+                <option key={version.id} value={version.id}>
+                  Version {version.version} - {new Date(version.updatedAt).toLocaleString()}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="text-sm text-zinc-500">
+            Selecting a version loads it into the editor. Saving creates a new
+            version.
+          </p>
+        </div>
+      ) : null}
 
       {blockedMessage ? (
         <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">

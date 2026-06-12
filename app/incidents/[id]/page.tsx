@@ -56,6 +56,7 @@ export default async function IncidentDetailPage({
     deployedTeams,
     currentUser,
     savedConceptNote,
+    conceptNoteVersions,
   ] = await Promise.all([
     data.listIncidents(),
     data.getIncidentNeeds(incident.id),
@@ -66,6 +67,7 @@ export default async function IncidentDetailPage({
     data.getIncidentTeams(incident.id),
     getSessionUser(),
     data.getIncidentConceptNote(incident.id),
+    data.getIncidentConceptNotes(incident.id),
   ]);
   const totalFundRequested = incident.fundRequests.reduce(
     (total, request) => total + request.amount,
@@ -392,6 +394,7 @@ export default async function IncidentDetailPage({
               incidentId={incident.id}
               initialDraft={savedConceptNote?.content ?? ""}
               savedAt={savedConceptNote?.updatedAt ?? null}
+              versions={conceptNoteVersions}
             />
           </div>
         </section>

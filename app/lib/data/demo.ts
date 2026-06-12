@@ -100,24 +100,28 @@ export const demoRepository: DataRepository = {
   async getIncidentConceptNote(id) {
     return conceptNotes.find((note) => note.incidentId === id);
   },
-  async upsertIncidentConceptNote(input) {
+  async getIncidentConceptNotes(id) {
+    return conceptNotes.filter((note) => note.incidentId === id);
+  },
+  async getConceptNote(id) {
+    return conceptNotes.find((note) => note.id === id);
+  },
+  async createIncidentConceptNoteVersion(input) {
     const now = new Date().toISOString();
-    const existing = conceptNotes.find(
-      (note) => note.incidentId === input.incidentId,
-    );
-
-    if (existing) {
-      existing.content = input.content;
-      existing.updatedAt = now;
-      existing.updatedBy = input.updatedBy ?? currentUser.name;
-
-      return existing;
-    }
+    const version =
+      Math.max(
+        0,
+        ...conceptNotes
+          .filter((note) => note.incidentId === input.incidentId)
+          .map((note) => note.version),
+      ) + 1;
 
     const note = {
       id: crypto.randomUUID(),
       incidentId: input.incidentId,
+      version,
       content: input.content,
+      status: input.status ?? "draft",
       updatedBy: input.updatedBy ?? currentUser.name,
       createdAt: now,
       updatedAt: now,

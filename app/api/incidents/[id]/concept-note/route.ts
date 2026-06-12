@@ -17,6 +17,7 @@ export async function GET(
 ) {
   const { id } = await params;
   const incident = await data.getIncident(id);
+  const requestUrl = new URL(request.url);
 
   if (!incident) {
     return new Response("Incident not found", { status: 404 });
@@ -37,7 +38,14 @@ export async function GET(
   const activities = await data.getIncidentActivities(incident.id);
   const assignedResources = await data.getIncidentResources(incident.id);
   const teams = await data.getIncidentTeams(incident.id);
-  const savedNote = await data.getIncidentConceptNote(incident.id);
+  const requestedNoteId = requestUrl.searchParams.get("conceptNoteId");
+  const requestedNote = requestedNoteId
+    ? await data.getConceptNote(requestedNoteId)
+    : undefined;
+  const savedNote =
+    requestedNote?.incidentId === incident.id
+      ? requestedNote
+      : await data.getIncidentConceptNote(incident.id);
 
   const location = [
     incident.locationName,
@@ -191,7 +199,7 @@ export async function POST(
     );
   }
 
-  const note = await data.upsertIncidentConceptNote({
+  const note = await data.createIncidentConceptNoteVersion({
     incidentId: id,
     content,
     updatedBy: auth.user.name,
