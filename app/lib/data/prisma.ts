@@ -1,4 +1,5 @@
 import type {
+  AuditLog as PrismaAuditLog,
   ConceptNote as PrismaConceptNote,
   DisasterType,
   FundRequest as PrismaFundRequest,
@@ -33,8 +34,10 @@ import type {
   SituationReport,
   TaskStatus,
   User,
+  AuditLog,
 } from "./types";
 import type {
+  CreateAuditLogInput,
   CreateSituationReportInput,
   DataRepository,
   DashboardSummary,
@@ -49,6 +52,7 @@ import type {
   UpdateNeedInput,
   UpdatePartnerActivityInput,
   UpdateResourceInput,
+  UpdateSituationReportInput,
   UpdateTaskInput,
 } from "./repository";
 
@@ -68,6 +72,10 @@ type ResourceWithMovements = PrismaResource & {
 type ActivityWithOrg = PrismaPartnerActivity & { organization: Organization };
 type SitrepWithCreator = PrismaSituationReport & { createdBy: PrismaUser };
 type ConceptNoteWithCreator = PrismaConceptNote & { createdBy: PrismaUser };
+
+function stringifyAuditValue(value: unknown) {
+  return value === undefined ? null : JSON.stringify(value);
+}
 
 const roleLabels: Record<PrismaRole, Role> = {
   ADMIN: "Admin",
@@ -430,6 +438,8 @@ function mapSitrep(sitrep: SitrepWithCreator): SituationReport {
     id: sitrep.id,
     incidentId: sitrep.incidentId,
     reportingPeriod: `${sitrep.reportingPeriodStart.toISOString()} - ${sitrep.reportingPeriodEnd.toISOString()}`,
+    status: sitrep.status as SituationReport["status"],
+    revision: sitrep.revision,
     summary: sitrep.summary,
     impact: sitrep.impact,
     priorityNeeds: sitrep.priorityNeeds,
@@ -438,6 +448,26 @@ function mapSitrep(sitrep: SitrepWithCreator): SituationReport {
     nextPriorities: sitrep.nextPriorities,
     createdBy: sitrep.createdBy.name,
     createdAt: sitrep.createdAt.toISOString(),
+    updatedAt: sitrep.updatedAt.toISOString(),
+    submittedAt: sitrep.submittedAt?.toISOString() ?? null,
+    reviewedAt: sitrep.reviewedAt?.toISOString() ?? null,
+    reviewedBy: sitrep.reviewedBy,
+    reviewComment: sitrep.reviewComment,
+  };
+}
+
+function mapAuditLog(log: PrismaAuditLog): AuditLog {
+  return {
+    id: log.id,
+    actorId: log.actorId,
+    actorName: log.actorName,
+    action: log.action,
+    entityType: log.entityType as AuditLog["entityType"],
+    entityId: log.entityId,
+    summary: log.summary,
+    before: log.before,
+    after: log.after,
+    createdAt: log.createdAt.toISOString(),
   };
 }
 
@@ -1069,12 +1099,105 @@ export const prismaRepository: DataRepository = {
         responseActions: input.responseActions,
         gaps: input.gaps,
         nextPriorities: input.nextPriorities,
+        status: input.status ?? "draft",
+        submittedAt: input.status === "submitted" ? now : null,
         createdById: currentUser.id,
       },
       include: { createdBy: true },
     });
 
     return mapSitrep(report);
+  },
+  async updateSituationReport(id: string, input: UpdateSituationReportInput) {
+    const existing = await prisma.situationReport.findUnique({
+      where: { id },
+      include: { createdBy: true },
+    });
+
+    if (!existing) {
+      return undefined;
+    }
+
+    const now = new Date();
+    const contentChanged = [
+      input.reportingPeriod,
+      input.summary,
+      input.impact,
+      input.priorityNeeds,
+      input.responseActions,
+      input.gaps,
+      input.nextPriorities,
+    ].some((value) => value !== undefined);
+    const existingPeriod = `${existing.reportingPeriodStart.toISOString()} - ${existing.reportingPeriodEnd.toISOString()}`;
+    const periodDate =
+      input.reportingPeriod && input.reportingPeriod !== existingPeriod ? now : undefined;
+    const report = await prisma.situationReport.update({
+      where: { id },
+      data: {
+        ...(periodDate
+          ? {
+              reportingPeriodStart: periodDate,
+              reportingPeriodEnd: periodDate,
+            }
+          : {}),
+        ...(input.summary !== undefined ? { summary: input.summary } : {}),
+        ...(input.impact !== undefined ? { impact: input.impact } : {}),
+        ...(input.priorityNeeds !== undefined
+          ? { priorityNeeds: input.priorityNeeds }
+          : {}),
+        ...(input.responseActions !== undefined
+          ? { responseActions: input.responseActions }
+          : {}),
+        ...(input.gaps !== undefined ? { gaps: input.gaps } : {}),
+        ...(input.nextPriorities !== undefined
+          ? { nextPriorities: input.nextPriorities }
+          : {}),
+        ...(contentChanged ? { revision: { increment: 1 } } : {}),
+        ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.status === "submitted"
+          ? { submittedAt: existing.submittedAt ?? now }
+          : {}),
+        ...(input.status === "approved" || input.status === "rejected"
+          ? {
+              reviewedAt: now,
+              reviewedBy: input.reviewedBy ?? null,
+            }
+          : {}),
+        ...(input.reviewComment !== undefined
+          ? { reviewComment: input.reviewComment }
+          : {}),
+      },
+      include: { createdBy: true },
+    });
+
+    return mapSitrep(report);
+  },
+  async listAuditLogs(entity) {
+    const logs = await prisma.auditLog.findMany({
+      where: {
+        ...(entity?.entityType ? { entityType: entity.entityType } : {}),
+        ...(entity?.entityId ? { entityId: entity.entityId } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return logs.map(mapAuditLog);
+  },
+  async createAuditLog(input: CreateAuditLogInput) {
+    const log = await prisma.auditLog.create({
+      data: {
+        actorId: input.actorId ?? null,
+        actorName: input.actorName,
+        action: input.action,
+        entityType: input.entityType,
+        entityId: input.entityId,
+        summary: input.summary,
+        before: stringifyAuditValue(input.before),
+        after: stringifyAuditValue(input.after),
+      },
+    });
+
+    return mapAuditLog(log);
   },
   async getIncidentConceptNote(id) {
     const note = await prisma.conceptNote.findFirst({

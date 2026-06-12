@@ -95,6 +95,15 @@ export const drizzleRepository: DataRepository = {
   async createSituationReport() {
     return unavailable();
   },
+  async updateSituationReport() {
+    return unavailable();
+  },
+  async listAuditLogs() {
+    return unavailable();
+  },
+  async createAuditLog() {
+    return unavailable();
+  },
   async getIncidentConceptNote() {
     return unavailable();
   },

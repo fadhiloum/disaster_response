@@ -1,5 +1,7 @@
 import type {
   ConceptNote,
+  AuditEntityType,
+  AuditLog,
   DeployedTeam,
   Incident,
   NeedReport,
@@ -20,6 +22,17 @@ export type DashboardSummary = {
 
 export type DataBackend = "demo" | "prisma" | "drizzle";
 
+export type CreateAuditLogInput = {
+  actorId?: string | null;
+  actorName: string;
+  action: string;
+  entityType: AuditEntityType;
+  entityId: string;
+  summary: string;
+  before?: unknown;
+  after?: unknown;
+};
+
 export type CreateSituationReportInput = {
   incidentId: string;
   reportingPeriod?: string;
@@ -31,6 +44,24 @@ export type CreateSituationReportInput = {
   responseActions: string;
   gaps: string;
   nextPriorities: string;
+  status?: SituationReport["status"];
+};
+
+export type UpdateSituationReportInput = Partial<
+  Pick<
+    SituationReport,
+    | "reportingPeriod"
+    | "summary"
+    | "impact"
+    | "priorityNeeds"
+    | "responseActions"
+    | "gaps"
+    | "nextPriorities"
+    | "status"
+    | "reviewComment"
+  >
+> & {
+  reviewedBy?: string | null;
 };
 
 export type CreateConceptNoteVersionInput = {
@@ -226,6 +257,15 @@ export type DataRepository = {
   createSituationReport(
     input: CreateSituationReportInput,
   ): Promise<SituationReport>;
+  updateSituationReport(
+    id: string,
+    input: UpdateSituationReportInput,
+  ): Promise<SituationReport | undefined>;
+  listAuditLogs(entity?: {
+    entityType?: AuditEntityType;
+    entityId?: string;
+  }): Promise<AuditLog[]>;
+  createAuditLog(input: CreateAuditLogInput): Promise<AuditLog>;
   getIncidentConceptNote(id: string): Promise<ConceptNote | undefined>;
   getIncidentConceptNotes(id: string): Promise<ConceptNote[]>;
   getConceptNote(id: string): Promise<ConceptNote | undefined>;

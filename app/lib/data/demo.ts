@@ -1,5 +1,6 @@
 import {
   currentUser,
+  auditLogs,
   conceptNotes,
   dashboardSummary,
   deployedTeams,
@@ -30,6 +31,7 @@ import type {
   UpdateResourceInput,
   UpdateTaskInput,
   UpdateIncidentInput,
+  CreateAuditLogInput,
 } from "./repository";
 
 function mapIncidentInput(input: CreateIncidentInput) {
@@ -429,6 +431,7 @@ export const demoRepository: DataRepository = {
     return getIncidentSitreps(id);
   },
   async createSituationReport(input) {
+    const now = new Date().toISOString();
     const report = {
       id: crypto.randomUUID(),
       incidentId: input.incidentId,
@@ -448,12 +451,102 @@ export const demoRepository: DataRepository = {
       gaps: input.gaps,
       nextPriorities: input.nextPriorities,
       createdBy: currentUser.name,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
+      status: input.status ?? "draft",
+      revision: 1,
+      submittedAt: input.status === "submitted" ? now : null,
+      reviewedAt: null,
+      reviewedBy: null,
+      reviewComment: null,
     };
 
     situationReports.unshift(report);
 
     return report;
+  },
+  async updateSituationReport(id, input) {
+    const report = situationReports.find((item) => item.id === id);
+
+    if (!report) {
+      return undefined;
+    }
+
+    const now = new Date().toISOString();
+    const contentFields = [
+      "reportingPeriod",
+      "summary",
+      "impact",
+      "priorityNeeds",
+      "responseActions",
+      "gaps",
+      "nextPriorities",
+    ] as const;
+    const hasContentChanges = contentFields.some(
+      (field) => input[field] !== undefined && input[field] !== report[field],
+    );
+
+    contentFields.forEach((field) => {
+      if (input[field] !== undefined) {
+        report[field] = input[field];
+      }
+    });
+
+    if (hasContentChanges) {
+      report.revision += 1;
+    }
+
+    if (input.status !== undefined) {
+      report.status = input.status;
+
+      if (input.status === "submitted") {
+        report.submittedAt = report.submittedAt ?? now;
+      }
+
+      if (input.status === "approved" || input.status === "rejected") {
+        report.reviewedAt = now;
+        report.reviewedBy = input.reviewedBy ?? currentUser.name;
+      }
+    }
+
+    if (input.reviewComment !== undefined) {
+      report.reviewComment = input.reviewComment;
+    }
+
+    report.updatedAt = now;
+
+    return report;
+  },
+  async listAuditLogs(entity) {
+    return auditLogs.filter((log) => {
+      if (entity?.entityType && log.entityType !== entity.entityType) {
+        return false;
+      }
+
+      if (entity?.entityId && log.entityId !== entity.entityId) {
+        return false;
+      }
+
+      return true;
+    });
+  },
+  async createAuditLog(input: CreateAuditLogInput) {
+    const log = {
+      id: crypto.randomUUID(),
+      actorId: input.actorId ?? null,
+      actorName: input.actorName,
+      action: input.action,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      summary: input.summary,
+      before: input.before === undefined ? null : JSON.stringify(input.before),
+      after: input.after === undefined ? null : JSON.stringify(input.after),
+      createdAt: new Date().toISOString(),
+    };
+
+    auditLogs.unshift(log);
+
+    return log;
   },
   async getIncidentConceptNote(id) {
     return conceptNotes.find((note) => note.incidentId === id);

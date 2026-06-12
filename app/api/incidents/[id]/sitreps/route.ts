@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,8 @@ const requiredFields = [
   "gaps",
   "nextPriorities",
 ] as const;
+
+const sitrepStatuses = new Set(["draft", "submitted", "approved", "rejected"]);
 
 function readStringField(payload: unknown, field: (typeof requiredFields)[number]) {
   if (typeof payload === "object" && payload !== null) {
@@ -34,6 +37,20 @@ function readOptionalStringField(payload: unknown, field: string) {
   }
 
   return undefined;
+}
+
+function readOptionalStatus(payload: unknown) {
+  const status = readOptionalStringField(payload, "status");
+
+  if (status === undefined) {
+    return undefined;
+  }
+
+  if (!sitrepStatuses.has(status)) {
+    return { error: "Invalid SitRep status" };
+  }
+
+  return status as "draft" | "submitted" | "approved" | "rejected";
 }
 
 export async function GET(
@@ -78,6 +95,12 @@ export async function POST(
     );
   }
 
+  const status = readOptionalStatus(payload);
+
+  if (typeof status === "object") {
+    return Response.json({ error: status.error }, { status: 400 });
+  }
+
   const report = await data.createSituationReport({
     incidentId: id,
     reportingPeriod: readOptionalStringField(payload, "reportingPeriod"),
@@ -92,6 +115,15 @@ export async function POST(
     responseActions: values.responseActions,
     gaps: values.gaps,
     nextPriorities: values.nextPriorities,
+    status,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: report,
+    entityId: report.id,
+    entityType: "sitrep",
+    summary: `Created SitRep for ${report.reportingPeriod}`,
   });
 
   return Response.json(

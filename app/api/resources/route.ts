@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../audit";
 
 export async function GET() {
   const resources = await data.listResources();
@@ -27,6 +28,14 @@ export async function POST(request: Request) {
     warehouseLocation: payload.warehouseLocation,
     receivedAt: payload.receivedAt,
     expiryDate: payload.expiryDate,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: resource,
+    entityId: resource.id,
+    entityType: "resource",
+    summary: `Created resource ${resource.name}`,
   });
 
   return Response.json(

@@ -6,7 +6,13 @@ import { data, formatNumber } from "@/app/lib/data";
 export const dynamic = "force-dynamic";
 
 export default async function MapPage() {
-  const incidents = await data.listIncidents();
+  const [incidents, needs, resources, teams, activities] = await Promise.all([
+    data.listIncidents(),
+    data.listNeeds(),
+    data.listResources(),
+    data.listDeployedTeams(),
+    data.listPartnerActivities(),
+  ]);
 
   return (
     <AppShell active="Map">
@@ -74,7 +80,13 @@ export default async function MapPage() {
             </div>
           </aside>
 
-          <OpsMap incidents={incidents} />
+          <OpsMap
+            activities={activities}
+            incidents={incidents}
+            needs={needs}
+            resources={resources}
+            teams={teams}
+          />
         </section>
       </div>
     </AppShell>

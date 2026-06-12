@@ -34,6 +34,13 @@ const activity = {
 function mockDataRepository(options: { incidentExists?: boolean } = {}) {
   const data = {
     backend: "demo",
+    createAuditLog: vi.fn(async (input) => ({
+      ...input,
+      id: "audit-1",
+      before: null,
+      after: null,
+      createdAt: "2026-06-12T05:00:00.000Z",
+    })),
     getIncident: vi.fn(async () =>
       options.incidentExists === false ? undefined : incident,
     ),

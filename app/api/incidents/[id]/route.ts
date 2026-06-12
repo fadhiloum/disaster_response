@@ -1,6 +1,7 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
 import { readUpdateIncidentPayload } from "../payload";
+import { recordAudit } from "../../audit";
 
 export async function GET(
   _request: Request,
@@ -41,6 +42,15 @@ export async function PATCH(
   }
 
   const updatedIncident = await data.updateIncident(id, result.input);
+  await recordAudit({
+    action: "update",
+    actor: auth.user,
+    after: updatedIncident ?? incident,
+    before: incident,
+    entityId: id,
+    entityType: "program",
+    summary: `Updated program ${incident.title}`,
+  });
 
   return Response.json({
     data: updatedIncident ?? incident,
@@ -66,6 +76,14 @@ export async function DELETE(
   }
 
   await data.deleteIncident(id);
+  await recordAudit({
+    action: "delete",
+    actor: auth.user,
+    before: incident,
+    entityId: id,
+    entityType: "program",
+    summary: `Deleted program ${incident.title}`,
+  });
 
   return Response.json({ data: { id }, mode: data.backend });
 }

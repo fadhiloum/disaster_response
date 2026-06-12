@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export async function POST(
   request: Request,
@@ -41,6 +42,15 @@ export async function POST(
     incidentId: payload.incidentId,
     quantity,
     note: payload.note,
+  });
+  await recordAudit({
+    action: "commit",
+    actor: auth.user,
+    after: updatedResource ?? resource,
+    before: resource,
+    entityId: id,
+    entityType: "resource_commitment",
+    summary: `Committed ${quantity} ${resource.unit} from ${resource.name}`,
   });
 
   return Response.json({

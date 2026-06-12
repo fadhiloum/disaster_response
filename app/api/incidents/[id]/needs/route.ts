@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export async function GET(
   _request: Request,
@@ -43,6 +44,14 @@ export async function POST(
     longitude: Number(payload.longitude ?? 0),
     notes: payload.notes,
     reportedById: auth.user.id,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: need,
+    entityId: need.id,
+    entityType: "need",
+    summary: `Created need ${need.category}`,
   });
 
   return Response.json(

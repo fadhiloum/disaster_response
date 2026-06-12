@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../audit";
 
 export async function PATCH(
   request: Request,
@@ -36,6 +37,15 @@ export async function PATCH(
     contactPhone: payload.contactPhone,
     startDate: payload.startDate,
     endDate: payload.endDate,
+  });
+  await recordAudit({
+    action: "update",
+    actor: auth.user,
+    after: updatedActivity ?? activity,
+    before: activity,
+    entityId: id,
+    entityType: "partner_activity",
+    summary: `Updated partner activity for ${activity.organization}`,
   });
 
   return Response.json({

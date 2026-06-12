@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export async function GET(
   _request: Request,
@@ -46,6 +47,14 @@ export async function POST(
     contactPhone: payload.contactPhone,
     startDate: payload.startDate,
     endDate: payload.endDate,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: activity,
+    entityId: activity.id,
+    entityType: "partner_activity",
+    summary: `Created partner activity for ${activity.organization}`,
   });
 
   return Response.json(

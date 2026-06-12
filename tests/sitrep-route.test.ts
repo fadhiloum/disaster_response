@@ -18,9 +18,16 @@ const savedReport = {
   id: "sitrep-new",
   incidentId: incident.id,
   reportingPeriod: "12 Jun 2026 AI-reviewed draft",
+  status: "draft",
+  revision: 1,
   ...createPayload,
   createdBy: "Maya Chen",
   createdAt: "2026-06-12T10:00:00.000Z",
+  updatedAt: "2026-06-12T10:00:00.000Z",
+  submittedAt: null,
+  reviewedAt: null,
+  reviewedBy: null,
+  reviewComment: null,
 };
 
 function mockDataRepository(
@@ -30,9 +37,30 @@ function mockDataRepository(
 ) {
   const data = {
     backend: "demo",
+    createAuditLog: vi.fn(async (input) => ({
+      ...input,
+      id: "audit-sitrep",
+      before: null,
+      after: null,
+      createdAt: "2026-06-12T10:01:00.000Z",
+    })),
     getIncident: vi.fn(async () => options.existingIncident),
     getIncidentSitreps: vi.fn(async () => [savedReport]),
+    listSituationReports: vi.fn(async () => [savedReport]),
     createSituationReport: vi.fn(async () => savedReport),
+    updateSituationReport: vi.fn(async (_id, input) => ({
+      ...savedReport,
+      ...input,
+      revision:
+        input.summary || input.impact || input.priorityNeeds ||
+        input.responseActions || input.gaps || input.nextPriorities
+          ? savedReport.revision + 1
+          : savedReport.revision,
+      reviewedAt:
+        input.status === "approved" || input.status === "rejected"
+          ? "2026-06-12T10:02:00.000Z"
+          : savedReport.reviewedAt,
+    })),
   };
 
   vi.doMock("@/app/lib/data", () => ({ data }));
@@ -61,6 +89,10 @@ async function loadRoute() {
 
 async function loadExportRoute() {
   return import("@/app/api/sitreps/[id]/export/route");
+}
+
+async function loadSitrepRoute() {
+  return import("@/app/api/sitreps/[id]/route");
 }
 
 describe("SitRep route", () => {
@@ -137,7 +169,78 @@ describe("SitRep route", () => {
       reportingPeriodStart: "2026-06-12T03:00:00.000Z",
       reportingPeriodEnd: "2026-06-12T03:00:00.000Z",
       ...createPayload,
+      status: undefined,
     });
+    expect(data.createAuditLog).toHaveBeenCalledWith({
+      action: "create",
+      actorId: "user-coordinator",
+      actorName: "Maya Chen",
+      after: savedReport,
+      before: undefined,
+      entityId: savedReport.id,
+      entityType: "sitrep",
+      summary: "Created SitRep for 12 Jun 2026 AI-reviewed draft",
+    });
+  });
+
+  it("updates SitRep status and records an audit entry", async () => {
+    const data = mockDataRepository();
+    mockAuth();
+    const { PATCH } = await loadSitrepRoute();
+
+    const response = await PATCH(
+      new Request("http://localhost/api/sitreps/sitrep-new", {
+        body: JSON.stringify({
+          status: "approved",
+          reviewComment: "Approved for partner circulation.",
+        }),
+        method: "PATCH",
+      }),
+      { params: Promise.resolve({ id: savedReport.id }) },
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.data).toMatchObject({
+      id: savedReport.id,
+      status: "approved",
+      reviewComment: "Approved for partner circulation.",
+      reviewedBy: "Maya Chen",
+    });
+    expect(data.updateSituationReport).toHaveBeenCalledWith(savedReport.id, {
+      status: "approved",
+      reviewComment: "Approved for partner circulation.",
+      reviewedBy: "Maya Chen",
+    });
+    expect(data.createAuditLog).toHaveBeenCalledWith({
+      action: "status",
+      actorId: "user-coordinator",
+      actorName: "Maya Chen",
+      after: expect.objectContaining({ status: "approved" }),
+      before: savedReport,
+      entityId: savedReport.id,
+      entityType: "sitrep",
+      summary: "Changed SitRep status from draft to approved",
+    });
+  });
+
+  it("rejects invalid SitRep statuses", async () => {
+    const data = mockDataRepository();
+    mockAuth();
+    const { PATCH } = await loadSitrepRoute();
+
+    const response = await PATCH(
+      new Request("http://localhost/api/sitreps/sitrep-new", {
+        body: JSON.stringify({ status: "published" }),
+        method: "PATCH",
+      }),
+      { params: Promise.resolve({ id: savedReport.id }) },
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload).toEqual({ error: "Invalid SitRep status" });
+    expect(data.updateSituationReport).not.toHaveBeenCalled();
   });
 
   it("requires a coordinator or admin to persist a SitRep", async () => {
