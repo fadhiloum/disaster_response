@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
-import { data } from "@/app/lib/data";
-import type { Role, User } from "@/app/lib/data";
+import { users } from "@/app/lib/demo-data";
+import type { Role, User } from "@/app/lib/data/types";
 
 export const sessionCookieName = "dr_session_user";
 
@@ -22,7 +22,7 @@ export async function getSessionUser() {
     return null;
   }
 
-  return (await data.listUsers()).find((user) => user.id === userId) ?? null;
+  return users.find((user) => user.id === userId) ?? null;
 }
 
 export async function requireUser(): Promise<AuthResult> {
@@ -48,4 +48,3 @@ export async function requireRole(allowedRoles: Role[]): Promise<AuthResult> {
 
   return result;
 }
-

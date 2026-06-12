@@ -15,6 +15,7 @@ import {
   formatDateTime,
   formatNumber,
 } from "@/app/lib/data";
+import { getSessionUser } from "@/app/lib/auth";
 import { AiSitrepDraft } from "./ai-sitrep-draft";
 
 const incidentTabs = [
@@ -27,11 +28,8 @@ const incidentTabs = [
   { icon: "report", id: "sitreps", label: "SitReps" },
 ] satisfies Array<{ icon: IconName; id: string; label: string }>;
 
-export async function generateStaticParams() {
-  const incidents = await data.listIncidents();
-
-  return incidents.map((incident) => ({ id: incident.id }));
-}
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export default async function IncidentDetailPage({
   params,
@@ -53,6 +51,7 @@ export default async function IncidentDetailPage({
     sitreps,
     assignedResources,
     deployedTeams,
+    currentUser,
   ] = await Promise.all([
     data.listIncidents(),
     data.getIncidentNeeds(incident.id),
@@ -61,6 +60,7 @@ export default async function IncidentDetailPage({
     data.getIncidentSitreps(incident.id),
     data.getIncidentResources(incident.id),
     data.getIncidentTeams(incident.id),
+    getSessionUser(),
   ]);
 
   return (
@@ -278,7 +278,10 @@ export default async function IncidentDetailPage({
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="sitreps">
           <SectionHeader title="Situation Reports" />
           <div className="mt-4">
-            <AiSitrepDraft incidentId={incident.id} />
+            <AiSitrepDraft
+              currentUserRole={currentUser?.role ?? null}
+              incidentId={incident.id}
+            />
           </div>
           <div className="mt-4 space-y-3">
             {sitreps.length ? (

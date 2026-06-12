@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { Role } from "@/app/lib/data/types";
 
 type SitrepSections = {
   summary: string;
@@ -95,15 +96,41 @@ function reportingPeriodLabel(date: Date) {
   }).format(date);
 }
 
-export function AiSitrepDraft({ incidentId }: { incidentId: string }) {
+const allowedDraftRoles: Role[] = ["Admin", "Coordinator"];
+
+function authMessage(role: Role | null) {
+  if (!role) {
+    return "Sign in as a Coordinator or Admin to draft and save SitReps.";
+  }
+
+  if (!allowedDraftRoles.includes(role)) {
+    return "Your current role cannot draft or save SitReps.";
+  }
+
+  return "";
+}
+
+export function AiSitrepDraft({
+  currentUserRole,
+  incidentId,
+}: {
+  currentUserRole: Role | null;
+  incidentId: string;
+}) {
   const router = useRouter();
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState("");
+  const blockedMessage = authMessage(currentUserRole);
 
   async function generateDraft() {
+    if (blockedMessage) {
+      setError(blockedMessage);
+      return;
+    }
+
     setIsLoading(true);
     setError("");
     setSavedMessage("");
@@ -111,7 +138,7 @@ export function AiSitrepDraft({ incidentId }: { incidentId: string }) {
     try {
       const response = await fetch(
         `/api/ai/incidents/${incidentId}/situation-report`,
-        { method: "POST" },
+        { credentials: "same-origin", method: "POST" },
       );
       const payload = await response.json();
 
@@ -132,6 +159,11 @@ export function AiSitrepDraft({ incidentId }: { incidentId: string }) {
   }
 
   async function saveDraft() {
+    if (blockedMessage) {
+      setError(blockedMessage);
+      return;
+    }
+
     if (!draft.trim()) {
       setError("Generate or enter draft text before saving.");
       return;
@@ -150,6 +182,7 @@ export function AiSitrepDraft({ incidentId }: { incidentId: string }) {
           reportingPeriodStart: now.toISOString(),
           reportingPeriodEnd: now.toISOString(),
         }),
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
@@ -183,7 +216,7 @@ export function AiSitrepDraft({ incidentId }: { incidentId: string }) {
         <div className="flex flex-wrap gap-2">
           <button
             className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82] focus:outline-none focus:ring-2 focus:ring-[#244a9b] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={isLoading || isSaving}
+            disabled={Boolean(blockedMessage) || isLoading || isSaving}
             onClick={generateDraft}
             type="button"
           >
@@ -191,7 +224,7 @@ export function AiSitrepDraft({ incidentId }: { incidentId: string }) {
           </button>
           <button
             className="inline-flex min-h-10 items-center justify-center rounded-md border border-[#244a9b] bg-white px-4 text-sm font-semibold text-[#244a9b] transition hover:bg-[#eef3ff] focus:outline-none focus:ring-2 focus:ring-[#244a9b] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={!draft.trim() || isLoading || isSaving}
+            disabled={Boolean(blockedMessage) || !draft.trim() || isLoading || isSaving}
             onClick={saveDraft}
             type="button"
           >
@@ -199,6 +232,12 @@ export function AiSitrepDraft({ incidentId }: { incidentId: string }) {
           </button>
         </div>
       </div>
+
+      {blockedMessage ? (
+        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {blockedMessage}
+        </p>
+      ) : null}
 
       {error ? (
         <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">

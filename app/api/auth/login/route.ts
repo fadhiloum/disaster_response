@@ -1,12 +1,13 @@
 import { cookies } from "next/headers";
-import { data } from "@/app/lib/data";
+import { users } from "@/app/lib/demo-data";
 import { sessionCookieName } from "@/app/lib/auth";
+
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => ({}))) as {
     email?: string;
   };
-  const users = await data.listUsers();
   const user =
     users.find((item) => item.email === payload.email) ??
     users.find((item) => item.role === "Coordinator") ??
@@ -26,6 +27,6 @@ export async function POST(request: Request) {
 
   return Response.json({
     data: user,
-    mode: data.backend,
+    mode: process.env.DATA_BACKEND ?? "demo",
   });
 }

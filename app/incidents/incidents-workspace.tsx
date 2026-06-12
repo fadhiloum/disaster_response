@@ -11,7 +11,7 @@ import {
   formatDateTime,
   formatNumber,
   type Incident,
-} from "@/app/lib/data";
+} from "@/app/lib/data/types";
 
 type FilterKey = "region" | "country" | "state";
 

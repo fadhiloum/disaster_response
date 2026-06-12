@@ -10,7 +10,7 @@ import {
   type DeployedTeam,
   type Incident,
   type Resource,
-} from "@/app/lib/data";
+} from "@/app/lib/data/types";
 
 type Tab = "items" | "teams";
 

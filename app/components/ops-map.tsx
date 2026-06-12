@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   formatNumber,
   type Incident,
-} from "@/app/lib/data";
+} from "@/app/lib/data/types";
 import { SeverityBadge, StatusBadge } from "@/app/components/ui";
 
 export function OpsMap({

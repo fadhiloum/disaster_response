@@ -1,6 +1,8 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
 
+export const runtime = "nodejs";
+
 const requiredFields = [
   "summary",
   "impact",

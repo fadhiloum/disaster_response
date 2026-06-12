@@ -47,7 +47,8 @@ On each request, the route:
 
 The OpenAI client helper is `app/lib/ai/openai.ts`. It reads
 `OPENAI_API_KEY` and uses `OPENAI_MODEL`, defaulting to `gpt-5.5` when the model
-is not set.
+is not set. `OPENAI_REQUEST_TIMEOUT_MS` controls the per-request timeout and
+defaults to `30000`.
 
 ## Data Included in the Prompt
 
@@ -69,6 +70,7 @@ Set the environment variables:
 ```env
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-5.5
+OPENAI_REQUEST_TIMEOUT_MS=30000
 ```
 
 Start the app:
@@ -106,6 +108,7 @@ Expected errors:
 
 - `503` if `OPENAI_API_KEY` is missing.
 - `404` if the incident ID does not exist.
+- `504` if the OpenAI request times out.
 
 ## Automated Tests
 

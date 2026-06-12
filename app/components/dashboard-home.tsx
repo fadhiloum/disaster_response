@@ -17,7 +17,7 @@ import {
   type PartnerActivity,
   type Resource,
   type ResponseTask,
-} from "@/app/lib/data";
+} from "@/app/lib/data/types";
 import type { DashboardSummary } from "@/app/lib/data/repository";
 
 export function DashboardHome({
