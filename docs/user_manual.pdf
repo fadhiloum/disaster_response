@@ -1,0 +1,339 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3609 >>
+stream
+0.14 0.29 0.61 rg
+0 0 612 792 re f
+1 1 1 rg
+36 36 540 720 re f
+0.09 0.09 0.11 rg
+BT /F2 24 Tf 1 0 0 1 54 720 Tm (Disaster Response Platform) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 14 Tf 1 0 0 1 54 684 Tm (User Manual) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 54 648 Tm (Audience: Program coordinators, field responders, partners, logistics staff, and) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 54 634 Tm (admins) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 54 618 Tm (Purpose: Operate the MVP disaster response coordination workspace) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 54 602 Tm (Last updated: June 12, 2026) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 6 Tf 1 0 0 1 54 586 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 556 Tm (1. What This App Is For) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 528 Tm (The Disaster Response Platform gives response teams one shared place to manage programs,) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 513.5 Tm (field needs, tasks, resources, partner activity, maps, budgets, and situation reports.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 499 Tm (It is designed for operational clarity during fast-moving response work.) Tj ET
+0.09 0.09 0.11 rg
+BT /F2 13 Tf 1 0 0 1 54 474.5 Tm (Core outcomes) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 452.5 Tm (- See active programs, affected people, open needs, teams, and resource gaps.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 434.25 Tm (- Submit and verify field needs with location, urgency, quantity, and notes.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 416 Tm (- Assign tasks and track status through response follow-up.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 397.75 Tm (- Track inventory, commitments, teams, and partner 3W activity.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 379.5 Tm (- Generate, review, audit, and export situation reports.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 361.25 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 341.25 Tm (2. User Roles) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 313.25 Tm (Admin: Full access to admin, users, organizations, and operational data.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 295.25 Tm (Coordinator: Manages programs, tasks, resources, reports, and review workflows.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 277.25 Tm (Responder: Submits needs and updates assigned task status.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 259.25 Tm (Partner: Updates partner 3W activity where available.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 241.25 Tm (Viewer: Reads dashboards, maps, and reports without mutation access.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 223.25 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 10 Tf 1 0 0 1 66 207.25 Tm (Note: Current MVP auth uses demo cookie sessions. Production deployments should) Tj ET
+0.09 0.09 0.11 rg
+BT /F2 10 Tf 1 0 0 1 66 189.25 Tm (replace this with the selected identity provider and enforce route-level) Tj ET
+0.09 0.09 0.11 rg
+BT /F2 10 Tf 1 0 0 1 66 171.25 Tm (protection.) Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 141.25 Tm (3. Navigation) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 113.25 Tm (- Dashboard: common operating picture and current response summary.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 95 Tm (- Programs: program list, creation flow, detail pages, and operational workflow) Tj ET
+0.82 0.82 0.85 RG
+54 58 m 558 58 l S
+0.36 0.36 0.38 rg
+BT /F1 8 Tf 1 0 0 1 54 42 Tm (Disaster Response Platform User Manual) Tj ET
+BT /F1 8 Tf 1 0 0 1 504 42 Tm (Page 1 of 4) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 4002 >>
+stream
+0.14 0.29 0.61 rg
+0 0 612 792 re f
+1 1 1 rg
+36 36 540 720 re f
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 720 Tm (  tabs.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 701.75 Tm (- Map: shared operational map with program, need, resource, team, and partner) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 687.5 Tm (  layers.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 669.25 Tm (- Deployment: logistics workspace for teams and resource commitments.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 651 Tm (- SitReps: saved situation reports and export links.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 632.75 Tm (- Admin: demo users, roles, and organizations.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 614.5 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 594.5 Tm (4. Program Workflow) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 566.5 Tm (1. Open Programs and choose New Program.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 548.25 Tm (2. Enter title, disaster type, location, coordinates, status, severity, and) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 534 Tm (   description.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 515.75 Tm (3. Add master budget, sub-program allocations, and initial fund requests when) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 501.5 Tm (   relevant.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 483.25 Tm (4. Save the program and confirm it appears on the dashboard and map.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 465 Tm (5. Use the program detail page to coordinate needs, tasks, resources, partners, and) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 450.75 Tm (   reports.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 432.5 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 13 Tf 1 0 0 1 54 416.5 Tm (Budget guardrails) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 394.5 Tm (The master budget is the program-level financial control. Sub-program allocations and) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 380 Tm (fund requests should remain within that control amount. If a fund request would exceed) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 365.5 Tm (the available balance, adjust the request or update the program budget through the) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 351 Tm (approved process.) Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 322.5 Tm (5. Needs And Tasks) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 294.5 Tm (1. Responder submits a need with category, location, urgency, quantity, affected) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 280.25 Tm (   people, and notes.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 262 Tm (2. Coordinator reviews and verifies the need.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 243.75 Tm (3. Coordinator creates a task, assigns it to a team, and sets priority and due) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 229.5 Tm (   date.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 211.25 Tm (4. Responder updates task status as work progresses.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 193 Tm (5. Coordinator reviews gaps and closes out fulfilled needs and completed tasks.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 174.75 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 10 Tf 1 0 0 1 66 158.75 Tm (Note: Use concise notes that explain what changed, what is blocked, and what) Tj ET
+0.09 0.09 0.11 rg
+BT /F2 10 Tf 1 0 0 1 66 140.75 Tm (support is needed. Avoid sensitive personal data unless policy allows it.) Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 110.75 Tm (6. Resources, Teams, And Partners) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 82.75 Tm (- Use Deployment to review available resources, committed quantities, teams, and) Tj ET
+0.82 0.82 0.85 RG
+54 58 m 558 58 l S
+0.36 0.36 0.38 rg
+BT /F1 8 Tf 1 0 0 1 54 42 Tm (Disaster Response Platform User Manual) Tj ET
+BT /F1 8 Tf 1 0 0 1 504 42 Tm (Page 2 of 4) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 4126 >>
+stream
+0.14 0.29 0.61 rg
+0 0 612 792 re f
+1 1 1 rg
+36 36 540 720 re f
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 720 Tm (  assigned programs.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 701.75 Tm (- Create or update resources with category, stock, unit, warehouse location, and) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 687.5 Tm (  assignment.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 669.25 Tm (- Commit resources only when stock is available and the operational need is) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 655 Tm (  verified.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 636.75 Tm (- Use partner activity records to track who is doing what, where, and current) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 622.5 Tm (  status.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 604.25 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 584.25 Tm (7. Operational Map) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 556.25 Tm (The map shows programs, needs, resources, teams, and partner activities. Use layer) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 541.75 Tm (toggles and filters for program, urgency, status, and organization to narrow the view.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 527.25 Tm (Empty results are expected when filters are restrictive.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 506.75 Tm (- Programs show the primary response location.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 488.5 Tm (- Needs show reported field demand by location.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 470.25 Tm (- Resources and teams are offset near their assigned program when they do not have) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 456 Tm (  independent coordinates.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 437.75 Tm (- Partner markers show 3W activity and status.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 419.5 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 399.5 Tm (8. Situation Reports) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 371.5 Tm (1. Open a program detail page and go to SitReps.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 353.25 Tm (2. Create a manual SitRep or generate an AI-assisted draft from current program) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 339 Tm (   data.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 320.75 Tm (3. Review all AI-generated text before saving it as an official record.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 302.5 Tm (4. Use status controls to move reports through draft, submitted, approved, or) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 288.25 Tm (   rejected states.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 270 Tm (5. Export approved or reviewed reports as operational, donor, or executive text/PDF) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 255.75 Tm (   variants.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 237.5 Tm () Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 225.5 Tm (Operational export: Full working report for response coordination.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 207.5 Tm (Donor export: Fundraising- and support-oriented language and section labels.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 189.5 Tm (Executive export: Shorter decision-focused variant for leadership review.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 171.5 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 151.5 Tm (9. Audit History) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 123.5 Tm (Core operational mutations record audit entries with actor, action, entity, timestamp,) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 109 Tm (and before/after summaries. Program detail pages surface recent operational and SitRep) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.5 Tf 1 0 0 1 54 94.5 Tm (audit activity so coordinators can trace important changes.) Tj ET
+0.82 0.82 0.85 RG
+54 58 m 558 58 l S
+0.36 0.36 0.38 rg
+BT /F1 8 Tf 1 0 0 1 54 42 Tm (Disaster Response Platform User Manual) Tj ET
+BT /F1 8 Tf 1 0 0 1 504 42 Tm (Page 3 of 4) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R /F2 12 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 2078 >>
+stream
+0.14 0.29 0.61 rg
+0 0 612 792 re f
+1 1 1 rg
+36 36 540 720 re f
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 712 Tm (10. Troubleshooting) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 684 Tm (Cannot save: Check required fields, role permissions, and whether the current user) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 670 Tm (is signed in.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 652 Tm (No map results: Clear filters or enable hidden layers.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 634 Tm (Missing data: Confirm the selected DATA_BACKEND and seed data for the environment.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 616 Tm (AI draft unavailable: Check server-side OPENAI_API_KEY and route logs. Never) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 602 Tm (expose the key as NEXT_PUBLIC.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10 Tf 1 0 0 1 66 584 Tm (Export issue: Try the text export first, then regenerate the PDF variant.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 566 Tm () Tj ET
+0.09 0.09 0.11 rg
+BT /F2 16 Tf 1 0 0 1 54 546 Tm (11. What's Next) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 518 Tm (- Replace demo auth with production identity and route protection.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 499.75 Tm (- Harden validation, empty states, loading states, and form feedback.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 481.5 Tm (- Add SitRep editing for saved records and complete approval UX polish.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 463.25 Tm (- Run accessibility and mobile layout reviews for field workflows.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 445 Tm (- Add PostGIS, Leaflet, or Mapbox only when advanced map requirements justify the) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 10.25 Tf 1 0 0 1 66 430.75 Tm (  extra infrastructure.) Tj ET
+0.22 0.22 0.25 rg
+BT /F1 4 Tf 1 0 0 1 54 412.5 Tm () Tj ET
+0.82 0.82 0.85 RG
+54 58 m 558 58 l S
+0.36 0.36 0.38 rg
+BT /F1 8 Tf 1 0 0 1 54 42 Tm (Disaster Response Platform User Manual) Tj ET
+BT /F1 8 Tf 1 0 0 1 504 42 Tm (Page 4 of 4) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+12 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000133 00000 n 
+0000000271 00000 n 
+0000003932 00000 n 
+0000004070 00000 n 
+0000008124 00000 n 
+0000008262 00000 n 
+0000012440 00000 n 
+0000012579 00000 n 
+0000014710 00000 n 
+0000014781 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+14857
+%%EOF
