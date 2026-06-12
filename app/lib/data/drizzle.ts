@@ -35,16 +35,37 @@ export const drizzleRepository: DataRepository = {
   async getIncidentNeeds() {
     return unavailable();
   },
+  async createNeed() {
+    return unavailable();
+  },
+  async updateNeed() {
+    return unavailable();
+  },
   async listTasks() {
     return unavailable();
   },
   async getIncidentTasks() {
     return unavailable();
   },
+  async createTask() {
+    return unavailable();
+  },
+  async updateTask() {
+    return unavailable();
+  },
   async listResources() {
     return unavailable();
   },
   async getIncidentResources() {
+    return unavailable();
+  },
+  async createResource() {
+    return unavailable();
+  },
+  async updateResource() {
+    return unavailable();
+  },
+  async commitResource() {
     return unavailable();
   },
   async listDeployedTeams() {
@@ -57,6 +78,12 @@ export const drizzleRepository: DataRepository = {
     return unavailable();
   },
   async getIncidentActivities() {
+    return unavailable();
+  },
+  async createPartnerActivity() {
+    return unavailable();
+  },
+  async updatePartnerActivity() {
     return unavailable();
   },
   async listSituationReports() {

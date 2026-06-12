@@ -19,8 +19,16 @@ import {
   users,
 } from "@/app/lib/demo-data";
 import type {
+  CreateNeedInput,
+  CreatePartnerActivityInput,
+  CreateResourceInput,
+  CreateTaskInput,
   CreateIncidentInput,
   DataRepository,
+  UpdateNeedInput,
+  UpdatePartnerActivityInput,
+  UpdateResourceInput,
+  UpdateTaskInput,
   UpdateIncidentInput,
 } from "./repository";
 
@@ -109,6 +117,151 @@ function applyIncidentUpdate(
   }
 }
 
+function applyDefined<T extends object>(target: T, input: Partial<T>) {
+  for (const [key, value] of Object.entries(input)) {
+    if (value !== undefined) {
+      Object.assign(target, { [key]: value });
+    }
+  }
+}
+
+function userName(id: string | undefined) {
+  return users.find((user) => user.id === id)?.name;
+}
+
+function mapNeedInput(input: CreateNeedInput) {
+  return {
+    id: crypto.randomUUID(),
+    incidentId: input.incidentId,
+    category: input.category,
+    urgency: input.urgency,
+    quantity: input.quantity,
+    unit: input.unit ?? "units",
+    affectedPeople: input.affectedPeople,
+    status: "reported" as const,
+    locationName: input.locationName,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    notes: input.notes ?? "",
+    reportedBy: userName(input.reportedById) ?? currentUser.name,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function applyNeedUpdate(
+  need: (typeof needReports)[number],
+  input: UpdateNeedInput,
+) {
+  applyDefined(need, {
+    category: input.category,
+    urgency: input.urgency,
+    quantity: input.quantity,
+    unit: input.unit,
+    affectedPeople: input.affectedPeople,
+    status: input.status,
+    locationName: input.locationName,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    notes: input.notes,
+  });
+}
+
+function mapTaskInput(input: CreateTaskInput) {
+  return {
+    id: crypto.randomUUID(),
+    incidentId: input.incidentId,
+    title: input.title,
+    assignee: input.assignee ?? userName(input.assigneeId) ?? "Unassigned",
+    priority: input.priority,
+    status: input.status ?? "todo",
+    dueTime: input.dueTime ?? new Date().toISOString(),
+    locationName: input.locationName ?? "",
+    description: input.description ?? "",
+  };
+}
+
+function applyTaskUpdate(
+  task: (typeof tasks)[number],
+  input: UpdateTaskInput,
+) {
+  applyDefined(task, {
+    title: input.title,
+    description: input.description,
+    assignee:
+      input.assignee ??
+      (input.assigneeId ? userName(input.assigneeId) : undefined),
+    priority: input.priority,
+    status: input.status,
+    dueTime: input.dueTime,
+    locationName: input.locationName,
+  });
+}
+
+function mapResourceInput(input: CreateResourceInput) {
+  return {
+    id: crypto.randomUUID(),
+    name: input.name,
+    category: input.category,
+    quantityAvailable: input.quantityAvailable,
+    quantityCommitted: input.quantityCommitted ?? 0,
+    unit: input.unit,
+    warehouseLocation: input.warehouseLocation,
+    receivedAt: input.receivedAt ?? new Date().toISOString(),
+    expiryDate: input.expiryDate ?? null,
+    assignedIncidentId: null,
+  };
+}
+
+function applyResourceUpdate(
+  resource: (typeof resources)[number],
+  input: UpdateResourceInput,
+) {
+  applyDefined(resource, {
+    name: input.name,
+    category: input.category,
+    quantityAvailable: input.quantityAvailable,
+    quantityCommitted: input.quantityCommitted,
+    unit: input.unit,
+    warehouseLocation: input.warehouseLocation,
+    receivedAt: input.receivedAt,
+    expiryDate: input.expiryDate,
+  });
+}
+
+function mapPartnerActivityInput(input: CreatePartnerActivityInput) {
+  return {
+    id: crypto.randomUUID(),
+    organization: input.organization ?? currentUser.organization,
+    incidentId: input.incidentId,
+    sector: input.sector,
+    activity: input.activity,
+    locationName: input.locationName,
+    status: input.status ?? "planned",
+    contactName: input.contactName,
+    contactPhone: input.contactPhone ?? "",
+    startDate: input.startDate ?? new Date().toISOString(),
+    endDate: input.endDate ?? null,
+  };
+}
+
+function applyPartnerActivityUpdate(
+  activity: (typeof partnerActivities)[number],
+  input: UpdatePartnerActivityInput,
+) {
+  applyDefined(activity, {
+    organization: input.organization,
+    incidentId: input.incidentId,
+    sector: input.sector,
+    activity: input.activity,
+    locationName: input.locationName,
+    status: input.status,
+    contactName: input.contactName,
+    contactPhone: input.contactPhone,
+    startDate: input.startDate,
+    endDate: input.endDate,
+  });
+}
+
 export const demoRepository: DataRepository = {
   backend: "demo",
   async getCurrentUser() {
@@ -161,17 +314,83 @@ export const demoRepository: DataRepository = {
   async getIncidentNeeds(id) {
     return getIncidentNeeds(id);
   },
+  async createNeed(input) {
+    const need = mapNeedInput(input);
+
+    needReports.unshift(need);
+
+    return need;
+  },
+  async updateNeed(id, input) {
+    const need = needReports.find((item) => item.id === id);
+
+    if (!need) {
+      return undefined;
+    }
+
+    applyNeedUpdate(need, input);
+
+    return need;
+  },
   async listTasks() {
     return tasks;
   },
   async getIncidentTasks(id) {
     return getIncidentTasks(id);
   },
+  async createTask(input) {
+    const task = mapTaskInput(input);
+
+    tasks.unshift(task);
+
+    return task;
+  },
+  async updateTask(id, input) {
+    const task = tasks.find((item) => item.id === id);
+
+    if (!task) {
+      return undefined;
+    }
+
+    applyTaskUpdate(task, input);
+
+    return task;
+  },
   async listResources() {
     return resources;
   },
   async getIncidentResources(id) {
     return getIncidentResources(id);
+  },
+  async createResource(input) {
+    const resource = mapResourceInput(input);
+
+    resources.unshift(resource);
+
+    return resource;
+  },
+  async updateResource(id, input) {
+    const resource = resources.find((item) => item.id === id);
+
+    if (!resource) {
+      return undefined;
+    }
+
+    applyResourceUpdate(resource, input);
+
+    return resource;
+  },
+  async commitResource(id, input) {
+    const resource = resources.find((item) => item.id === id);
+
+    if (!resource) {
+      return undefined;
+    }
+
+    resource.quantityCommitted += input.quantity;
+    resource.assignedIncidentId = input.incidentId ?? resource.assignedIncidentId;
+
+    return resource;
   },
   async listDeployedTeams() {
     return deployedTeams;
@@ -184,6 +403,24 @@ export const demoRepository: DataRepository = {
   },
   async getIncidentActivities(id) {
     return getIncidentActivities(id);
+  },
+  async createPartnerActivity(input) {
+    const activity = mapPartnerActivityInput(input);
+
+    partnerActivities.unshift(activity);
+
+    return activity;
+  },
+  async updatePartnerActivity(id, input) {
+    const activity = partnerActivities.find((item) => item.id === id);
+
+    if (!activity) {
+      return undefined;
+    }
+
+    applyPartnerActivityUpdate(activity, input);
+
+    return activity;
   },
   async listSituationReports() {
     return situationReports;

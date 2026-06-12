@@ -3,9 +3,11 @@ import type {
   DisasterType,
   FundRequest as PrismaFundRequest,
   Incident as PrismaIncident,
+  NeedCategory,
   NeedReport as PrismaNeedReport,
   Organization,
   PartnerActivity as PrismaPartnerActivity,
+  Priority,
   ProgramSubProgram as PrismaProgramSubProgram,
   Resource as PrismaResource,
   ResourceMovement as PrismaResourceMovement,
@@ -13,6 +15,7 @@ import type {
   Severity as PrismaSeverity,
   SituationReport as PrismaSituationReport,
   Task as PrismaTask,
+  TaskStatus as PrismaTaskStatus,
   User as PrismaUser,
 } from "@prisma/client";
 import { prisma } from "./prisma-client";
@@ -37,7 +40,16 @@ import type {
   DashboardSummary,
   CreateConceptNoteVersionInput,
   CreateIncidentInput,
+  CreateNeedInput,
+  CreatePartnerActivityInput,
+  CreateResourceInput,
+  CreateTaskInput,
+  CommitResourceInput,
   UpdateIncidentInput,
+  UpdateNeedInput,
+  UpdatePartnerActivityInput,
+  UpdateResourceInput,
+  UpdateTaskInput,
 } from "./repository";
 
 type UserWithOrg = PrismaUser & { organization: Organization | null };
@@ -110,6 +122,41 @@ const priorityLabels = {
   HIGH: "high",
   CRITICAL: "critical",
 } as const;
+
+const priorityValues: Record<string, Priority> = {
+  low: "LOW",
+  medium: "MEDIUM",
+  high: "HIGH",
+  critical: "CRITICAL",
+};
+
+const needStatusValues: Record<NeedStatus, keyof typeof needStatusLabels> = {
+  reported: "REPORTED",
+  verified: "VERIFIED",
+  assigned: "ASSIGNED",
+  fulfilled: "FULFILLED",
+  closed: "CLOSED",
+};
+
+const taskStatusValues: Record<TaskStatus, PrismaTaskStatus> = {
+  todo: "TODO",
+  "in progress": "IN_PROGRESS",
+  blocked: "BLOCKED",
+  done: "DONE",
+};
+
+const needCategoryValues: Record<string, NeedCategory> = {
+  food: "FOOD",
+  water: "WATER",
+  shelter: "SHELTER",
+  medical: "MEDICAL",
+  wash: "WASH",
+  "search and rescue": "SEARCH_AND_RESCUE",
+  search_and_rescue: "SEARCH_AND_RESCUE",
+  logistics: "LOGISTICS",
+  protection: "PROTECTION",
+  other: "OTHER",
+};
 
 const disasterValues: Record<string, DisasterType> = {
   flood: "FLOOD",
@@ -417,6 +464,60 @@ function toDate(value: string | undefined, fallback: Date) {
   return Number.isNaN(parsed.getTime()) ? fallback : parsed;
 }
 
+function toNullableDate(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function toNeedCategory(value: string) {
+  return needCategoryValues[value.trim().toLowerCase()] ?? "OTHER";
+}
+
+async function findFallbackUser(id?: string) {
+  if (id) {
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (user) {
+      return user;
+    }
+  }
+
+  return prisma.user.findFirst({ orderBy: { createdAt: "asc" } });
+}
+
+async function findOptionalUser(id?: string | null) {
+  if (!id) {
+    return null;
+  }
+
+  return prisma.user.findUnique({ where: { id } });
+}
+
+async function findFallbackOrganization(id?: string, name?: string) {
+  if (id) {
+    const organization = await prisma.organization.findUnique({ where: { id } });
+
+    if (organization) {
+      return organization;
+    }
+  }
+
+  if (name) {
+    const organization = await prisma.organization.findFirst({ where: { name } });
+
+    if (organization) {
+      return organization;
+    }
+  }
+
+  return prisma.organization.findFirst({ orderBy: { createdAt: "asc" } });
+}
+
 async function calculateDashboardSummary(): Promise<DashboardSummary> {
   const [incidents, needs, tasks] = await Promise.all([
     prisma.incident.findMany({ include: { createdBy: true, needs: true, tasks: true } }),
@@ -578,6 +679,71 @@ export const prismaRepository: DataRepository = {
 
     return needs.map(mapNeed);
   },
+  async createNeed(input: CreateNeedInput) {
+    const reportedBy = await findFallbackUser(input.reportedById);
+
+    if (!reportedBy) {
+      throw new Error("Cannot create a need report without a user.");
+    }
+
+    const need = await prisma.needReport.create({
+      data: {
+        incidentId: input.incidentId,
+        category: toNeedCategory(input.category),
+        urgency: priorityValues[input.urgency],
+        quantity: input.quantity,
+        affectedPeople: input.affectedPeople,
+        latitude: input.latitude,
+        longitude: input.longitude,
+        locationName: input.locationName,
+        notes: input.notes,
+        reportedById: reportedBy.id,
+      },
+      include: { reportedBy: true },
+    });
+
+    return mapNeed(need);
+  },
+  async updateNeed(id, input: UpdateNeedInput) {
+    const existing = await prisma.needReport.findUnique({ where: { id } });
+
+    if (!existing) {
+      return undefined;
+    }
+
+    const verifiedBy =
+      input.verifiedById !== undefined
+        ? await findOptionalUser(input.verifiedById)
+        : null;
+    const need = await prisma.needReport.update({
+      where: { id },
+      data: {
+        ...(input.category !== undefined
+          ? { category: toNeedCategory(input.category) }
+          : {}),
+        ...(input.urgency !== undefined
+          ? { urgency: priorityValues[input.urgency] }
+          : {}),
+        ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
+        ...(input.affectedPeople !== undefined
+          ? { affectedPeople: input.affectedPeople }
+          : {}),
+        ...(input.status !== undefined ? { status: needStatusValues[input.status] } : {}),
+        ...(input.locationName !== undefined
+          ? { locationName: input.locationName }
+          : {}),
+        ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+        ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
+        ...(input.notes !== undefined ? { notes: input.notes } : {}),
+        ...(input.verifiedById !== undefined
+          ? { verifiedById: verifiedBy?.id ?? null }
+          : {}),
+      },
+      include: { reportedBy: true },
+    });
+
+    return mapNeed(need);
+  },
   async listTasks() {
     const tasks = await prisma.task.findMany({
       include: { assignee: true },
@@ -594,6 +760,66 @@ export const prismaRepository: DataRepository = {
     });
 
     return tasks.map(mapTask);
+  },
+  async createTask(input: CreateTaskInput) {
+    const createdBy = await findFallbackUser(input.createdById);
+    const assignee = await findOptionalUser(input.assigneeId);
+
+    if (!createdBy) {
+      throw new Error("Cannot create a task without a user.");
+    }
+
+    const task = await prisma.task.create({
+      data: {
+        incidentId: input.incidentId,
+        title: input.title,
+        description: input.description,
+        assigneeId: assignee?.id ?? null,
+        priority: priorityValues[input.priority],
+        status: input.status ? taskStatusValues[input.status] : "TODO",
+        dueTime: toNullableDate(input.dueTime),
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
+        createdById: createdBy.id,
+      },
+      include: { assignee: true },
+    });
+
+    return mapTask(task);
+  },
+  async updateTask(id, input: UpdateTaskInput) {
+    const existing = await prisma.task.findUnique({ where: { id } });
+
+    if (!existing) {
+      return undefined;
+    }
+
+    const assignee =
+      input.assigneeId !== undefined ? await findOptionalUser(input.assigneeId) : null;
+    const task = await prisma.task.update({
+      where: { id },
+      data: {
+        ...(input.title !== undefined ? { title: input.title } : {}),
+        ...(input.description !== undefined
+          ? { description: input.description }
+          : {}),
+        ...(input.assigneeId !== undefined
+          ? { assigneeId: assignee?.id ?? null }
+          : {}),
+        ...(input.priority !== undefined
+          ? { priority: priorityValues[input.priority] }
+          : {}),
+        ...(input.status !== undefined ? { status: taskStatusValues[input.status] } : {}),
+        ...(input.dueTime !== undefined
+          ? { dueTime: toNullableDate(input.dueTime) }
+          : {}),
+        ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+        ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
+      },
+      include: { assignee: true },
+    });
+
+    return mapTask(task);
   },
   async listResources() {
     const resources = await prisma.resource.findMany({
@@ -623,6 +849,91 @@ export const prismaRepository: DataRepository = {
 
     return resources.map(mapResource);
   },
+  async createResource(input: CreateResourceInput) {
+    const resource = await prisma.resource.create({
+      data: {
+        name: input.name,
+        category: input.category,
+        quantityAvailable: input.quantityAvailable,
+        quantityCommitted: input.quantityCommitted ?? 0,
+        unit: input.unit,
+        warehouseLocation: input.warehouseLocation,
+        expiryDate: toNullableDate(input.expiryDate),
+        ...(input.receivedAt ? { createdAt: toDate(input.receivedAt, new Date()) } : {}),
+      },
+      include: {
+        movements: { orderBy: { createdAt: "desc" }, take: 1 },
+      },
+    });
+
+    return mapResource(resource);
+  },
+  async updateResource(id, input: UpdateResourceInput) {
+    const existing = await prisma.resource.findUnique({ where: { id } });
+
+    if (!existing) {
+      return undefined;
+    }
+
+    const resource = await prisma.resource.update({
+      where: { id },
+      data: {
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.category !== undefined ? { category: input.category } : {}),
+        ...(input.quantityAvailable !== undefined
+          ? { quantityAvailable: input.quantityAvailable }
+          : {}),
+        ...(input.quantityCommitted !== undefined
+          ? { quantityCommitted: input.quantityCommitted }
+          : {}),
+        ...(input.unit !== undefined ? { unit: input.unit } : {}),
+        ...(input.warehouseLocation !== undefined
+          ? { warehouseLocation: input.warehouseLocation }
+          : {}),
+        ...(input.expiryDate !== undefined
+          ? { expiryDate: toNullableDate(input.expiryDate) }
+          : {}),
+        ...(input.receivedAt !== undefined
+          ? { createdAt: toDate(input.receivedAt, existing.createdAt) }
+          : {}),
+      },
+      include: {
+        movements: { orderBy: { createdAt: "desc" }, take: 1 },
+      },
+    });
+
+    return mapResource(resource);
+  },
+  async commitResource(id, input: CommitResourceInput) {
+    const existing = await prisma.resource.findUnique({ where: { id } });
+
+    if (!existing) {
+      return undefined;
+    }
+
+    const resource = await prisma.$transaction(async (tx) => {
+      await tx.resourceMovement.create({
+        data: {
+          resourceId: id,
+          incidentId: input.incidentId ?? null,
+          quantity: input.quantity,
+          note: input.note,
+        },
+      });
+
+      return tx.resource.update({
+        where: { id },
+        data: {
+          quantityCommitted: { increment: input.quantity },
+        },
+        include: {
+          movements: { orderBy: { createdAt: "desc" }, take: 1 },
+        },
+      });
+    });
+
+    return mapResource(resource);
+  },
   async listDeployedTeams() {
     return [];
   },
@@ -645,6 +956,78 @@ export const prismaRepository: DataRepository = {
     });
 
     return activities.map(mapActivity);
+  },
+  async createPartnerActivity(input: CreatePartnerActivityInput) {
+    const organization = await findFallbackOrganization(
+      input.organizationId,
+      input.organization,
+    );
+
+    if (!organization) {
+      throw new Error("Cannot create a partner activity without an organization.");
+    }
+
+    const activity = await prisma.partnerActivity.create({
+      data: {
+        organizationId: organization.id,
+        incidentId: input.incidentId,
+        sector: input.sector,
+        activity: input.activity,
+        locationName: input.locationName,
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
+        status: input.status ?? "planned",
+        contactName: input.contactName,
+        contactPhone: input.contactPhone,
+        startDate: toDate(input.startDate, new Date()),
+        endDate: toNullableDate(input.endDate),
+      },
+      include: { organization: true },
+    });
+
+    return mapActivity(activity);
+  },
+  async updatePartnerActivity(id, input: UpdatePartnerActivityInput) {
+    const existing = await prisma.partnerActivity.findUnique({ where: { id } });
+
+    if (!existing) {
+      return undefined;
+    }
+
+    const organization =
+      input.organizationId || input.organization
+        ? await findFallbackOrganization(input.organizationId, input.organization)
+        : null;
+    const activity = await prisma.partnerActivity.update({
+      where: { id },
+      data: {
+        ...(organization ? { organizationId: organization.id } : {}),
+        ...(input.incidentId !== undefined ? { incidentId: input.incidentId } : {}),
+        ...(input.sector !== undefined ? { sector: input.sector } : {}),
+        ...(input.activity !== undefined ? { activity: input.activity } : {}),
+        ...(input.locationName !== undefined
+          ? { locationName: input.locationName }
+          : {}),
+        ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+        ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
+        ...(input.status !== undefined ? { status: input.status } : {}),
+        ...(input.contactName !== undefined
+          ? { contactName: input.contactName }
+          : {}),
+        ...(input.contactPhone !== undefined
+          ? { contactPhone: input.contactPhone }
+          : {}),
+        ...(input.startDate !== undefined
+          ? { startDate: toDate(input.startDate, existing.startDate) }
+          : {}),
+        ...(input.endDate !== undefined
+          ? { endDate: toNullableDate(input.endDate) }
+          : {}),
+      },
+      include: { organization: true },
+    });
+
+    return mapActivity(activity);
   },
   async listSituationReports() {
     const reports = await prisma.situationReport.findMany({

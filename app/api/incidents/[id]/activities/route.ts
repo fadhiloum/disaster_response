@@ -31,15 +31,26 @@ export async function POST(
   }
 
   const payload = await request.json();
+  const activity = await data.createPartnerActivity({
+    incidentId: id,
+    organization: payload.organization ?? auth.user.organization,
+    organizationId: payload.organizationId,
+    sector: payload.sector ?? "General",
+    activity: payload.activity ?? "Partner activity",
+    locationName: payload.locationName ?? "Unspecified location",
+    latitude: payload.latitude !== undefined ? Number(payload.latitude) : undefined,
+    longitude:
+      payload.longitude !== undefined ? Number(payload.longitude) : undefined,
+    status: payload.status,
+    contactName: payload.contactName ?? auth.user.name,
+    contactPhone: payload.contactPhone,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+  });
 
   return Response.json(
     {
-      data: {
-        id: crypto.randomUUID(),
-        incidentId: id,
-        status: "planned",
-        ...payload,
-      },
+      data: activity,
       mode: data.backend,
     },
     { status: 201 },

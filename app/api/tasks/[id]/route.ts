@@ -19,13 +19,22 @@ export async function PATCH(
   }
 
   const payload = await request.json();
+  const updatedTask = await data.updateTask(id, {
+    title: payload.title,
+    description: payload.description,
+    assignee: payload.assignee,
+    assigneeId: payload.assigneeId,
+    priority: payload.priority,
+    status: payload.status,
+    dueTime: payload.dueTime,
+    locationName: payload.locationName,
+    latitude: payload.latitude !== undefined ? Number(payload.latitude) : undefined,
+    longitude:
+      payload.longitude !== undefined ? Number(payload.longitude) : undefined,
+  });
 
   return Response.json({
-    data: {
-      ...task,
-      ...payload,
-      id: task.id,
-    },
+    data: updatedTask ?? task,
     mode: data.backend,
   });
 }
