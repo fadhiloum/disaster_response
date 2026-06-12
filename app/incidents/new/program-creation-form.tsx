@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CommandLink, SecondaryLink } from "@/app/components/ui";
-import { formatCurrency } from "@/app/lib/data";
+import { formatCurrency } from "@/app/lib/data/types";
 
 const disasterTypes = [
   "flood",
