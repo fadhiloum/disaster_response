@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export async function GET(
   _request: Request,
@@ -31,15 +32,34 @@ export async function POST(
   }
 
   const payload = await request.json();
+  const activity = await data.createPartnerActivity({
+    incidentId: id,
+    organization: payload.organization ?? auth.user.organization,
+    organizationId: payload.organizationId,
+    sector: payload.sector ?? "General",
+    activity: payload.activity ?? "Partner activity",
+    locationName: payload.locationName ?? "Unspecified location",
+    latitude: payload.latitude !== undefined ? Number(payload.latitude) : undefined,
+    longitude:
+      payload.longitude !== undefined ? Number(payload.longitude) : undefined,
+    status: payload.status,
+    contactName: payload.contactName ?? auth.user.name,
+    contactPhone: payload.contactPhone,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: activity,
+    entityId: activity.id,
+    entityType: "partner_activity",
+    summary: `Created partner activity for ${activity.organization}`,
+  });
 
   return Response.json(
     {
-      data: {
-        id: crypto.randomUUID(),
-        incidentId: id,
-        status: "planned",
-        ...payload,
-      },
+      data: activity,
       mode: data.backend,
     },
     { status: 201 },

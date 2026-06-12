@@ -146,16 +146,23 @@ function getStatusTone(status: string): Tone {
     return "red";
   }
 
-  if (["high", "verified", "assigned", "in progress", "stabilizing"].includes(status)) {
+  if (
+    ["high", "verified", "assigned", "in progress", "stabilizing", "submitted"]
+      .includes(status)
+  ) {
     return "amber";
   }
 
-  if (["fulfilled", "closed", "done"].includes(status)) {
+  if (["approved", "fulfilled", "closed", "done"].includes(status)) {
     return "green";
   }
 
-  if (["monitoring", "todo", "planned"].includes(status)) {
+  if (["draft", "monitoring", "todo", "planned"].includes(status)) {
     return "blue";
+  }
+
+  if (["rejected"].includes(status)) {
+    return "red";
   }
 
   return "gray";

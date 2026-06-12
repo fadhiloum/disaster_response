@@ -73,11 +73,26 @@ export const data: DataRepository = {
   async getIncident(id) {
     return (await getRepository()).getIncident(id);
   },
+  async createIncident(input) {
+    return (await getRepository()).createIncident(input);
+  },
+  async updateIncident(id, input) {
+    return (await getRepository()).updateIncident(id, input);
+  },
+  async deleteIncident(id) {
+    return (await getRepository()).deleteIncident(id);
+  },
   async listNeeds() {
     return (await getRepository()).listNeeds();
   },
   async getIncidentNeeds(id) {
     return (await getRepository()).getIncidentNeeds(id);
+  },
+  async createNeed(input) {
+    return (await getRepository()).createNeed(input);
+  },
+  async updateNeed(id, input) {
+    return (await getRepository()).updateNeed(id, input);
   },
   async listTasks() {
     return (await getRepository()).listTasks();
@@ -85,11 +100,26 @@ export const data: DataRepository = {
   async getIncidentTasks(id) {
     return (await getRepository()).getIncidentTasks(id);
   },
+  async createTask(input) {
+    return (await getRepository()).createTask(input);
+  },
+  async updateTask(id, input) {
+    return (await getRepository()).updateTask(id, input);
+  },
   async listResources() {
     return (await getRepository()).listResources();
   },
   async getIncidentResources(id) {
     return (await getRepository()).getIncidentResources(id);
+  },
+  async createResource(input) {
+    return (await getRepository()).createResource(input);
+  },
+  async updateResource(id, input) {
+    return (await getRepository()).updateResource(id, input);
+  },
+  async commitResource(id, input) {
+    return (await getRepository()).commitResource(id, input);
   },
   async listDeployedTeams() {
     return (await getRepository()).listDeployedTeams();
@@ -103,6 +133,12 @@ export const data: DataRepository = {
   async getIncidentActivities(id) {
     return (await getRepository()).getIncidentActivities(id);
   },
+  async createPartnerActivity(input) {
+    return (await getRepository()).createPartnerActivity(input);
+  },
+  async updatePartnerActivity(id, input) {
+    return (await getRepository()).updatePartnerActivity(id, input);
+  },
   async listSituationReports() {
     return (await getRepository()).listSituationReports();
   },
@@ -111,6 +147,15 @@ export const data: DataRepository = {
   },
   async createSituationReport(input) {
     return (await getRepository()).createSituationReport(input);
+  },
+  async updateSituationReport(id, input) {
+    return (await getRepository()).updateSituationReport(id, input);
+  },
+  async listAuditLogs(entity) {
+    return (await getRepository()).listAuditLogs(entity);
+  },
+  async createAuditLog(input) {
+    return (await getRepository()).createAuditLog(input);
   },
   async getIncidentConceptNote(id) {
     return (await getRepository()).getIncidentConceptNote(id);
@@ -131,6 +176,8 @@ export const data: DataRepository = {
 
 export type { DataBackend, DataRepository } from "./repository";
 export type {
+  AuditEntityType,
+  AuditLog,
   ConceptNote,
   DeployedTeam,
   FundRequest,

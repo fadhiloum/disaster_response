@@ -108,7 +108,11 @@ model Incident {
   disasterType       DisasterType
   severity           Severity
   status             IncidentStatus      @default(MONITORING)
+  region             String              @default("")
+  country            String              @default("")
+  state              String              @default("")
   description        String
+  latestUpdate       String              @default("")
   latitude           Decimal             @db.Decimal(9, 6)
   longitude          Decimal             @db.Decimal(9, 6)
   locationName       String
@@ -243,9 +247,16 @@ model SituationReport {
   responseActions      String
   gaps                 String
   nextPriorities       String
+  status               String   @default("draft")
+  revision             Int      @default(1)
   createdById          String
   createdBy            User     @relation("SitRepCreator", fields: [createdById], references: [id])
   createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  submittedAt          DateTime?
+  reviewedAt           DateTime?
+  reviewedBy           String?
+  reviewComment        String?
 }
 
 model ConceptNote {
@@ -261,4 +272,20 @@ model ConceptNote {
   updatedAt   DateTime @updatedAt
 
   @@unique([incidentId, version])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorName  String
+  action     String
+  entityType String
+  entityId   String
+  summary    String
+  before     String?
+  after      String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

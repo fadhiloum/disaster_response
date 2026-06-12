@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export async function GET(
   _request: Request,
@@ -31,16 +32,31 @@ export async function POST(
   }
 
   const payload = await request.json();
+  const need = await data.createNeed({
+    incidentId: id,
+    category: payload.category ?? "Other",
+    urgency: payload.urgency ?? "medium",
+    quantity: Number(payload.quantity ?? 0),
+    unit: payload.unit,
+    affectedPeople: Number(payload.affectedPeople ?? 0),
+    locationName: payload.locationName ?? "Unspecified location",
+    latitude: Number(payload.latitude ?? 0),
+    longitude: Number(payload.longitude ?? 0),
+    notes: payload.notes,
+    reportedById: auth.user.id,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: need,
+    entityId: need.id,
+    entityType: "need",
+    summary: `Created need ${need.category}`,
+  });
 
   return Response.json(
     {
-      data: {
-        id: crypto.randomUUID(),
-        incidentId: id,
-        status: "reported",
-        createdAt: new Date().toISOString(),
-        ...payload,
-      },
+      data: need,
       mode: data.backend,
     },
     { status: 201 },

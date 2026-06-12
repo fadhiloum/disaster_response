@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export async function GET(
   _request: Request,
@@ -31,15 +32,33 @@ export async function POST(
   }
 
   const payload = await request.json();
+  const task = await data.createTask({
+    incidentId: id,
+    title: payload.title ?? "Untitled task",
+    description: payload.description,
+    assignee: payload.assignee,
+    assigneeId: payload.assigneeId,
+    priority: payload.priority ?? "medium",
+    status: payload.status,
+    dueTime: payload.dueTime,
+    locationName: payload.locationName,
+    latitude: payload.latitude !== undefined ? Number(payload.latitude) : undefined,
+    longitude:
+      payload.longitude !== undefined ? Number(payload.longitude) : undefined,
+    createdById: auth.user.id,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: task,
+    entityId: task.id,
+    entityType: "task",
+    summary: `Created task ${task.title}`,
+  });
 
   return Response.json(
     {
-      data: {
-        id: crypto.randomUUID(),
-        incidentId: id,
-        status: "todo",
-        ...payload,
-      },
+      data: task,
       mode: data.backend,
     },
     { status: 201 },

@@ -19,6 +19,14 @@ import {
 import { getSessionUser } from "@/app/lib/auth";
 import { AiConceptNoteDraft } from "./ai-concept-note-draft";
 import { AiSitrepDraft } from "./ai-sitrep-draft";
+import {
+  ManualSitrepForm,
+  NeedVerificationControl,
+  NeedSubmissionForm,
+  SitrepStatusControl,
+  TaskAssignmentForm,
+  TaskStatusControl,
+} from "./incident-workflow-forms";
 
 const incidentTabs = [
   { icon: "overview", id: "overview", label: "Overview" },
@@ -57,6 +65,7 @@ export default async function IncidentDetailPage({
     currentUser,
     savedConceptNote,
     conceptNoteVersions,
+    auditLogs,
   ] = await Promise.all([
     data.listIncidents(),
     data.getIncidentNeeds(incident.id),
@@ -68,6 +77,7 @@ export default async function IncidentDetailPage({
     getSessionUser(),
     data.getIncidentConceptNote(incident.id),
     data.getIncidentConceptNotes(incident.id),
+    data.listAuditLogs(),
   ]);
   const totalFundRequested = incident.fundRequests.reduce(
     (total, request) => total + request.amount,
@@ -77,6 +87,31 @@ export default async function IncidentDetailPage({
     incident.masterBudgetAmount - totalFundRequested,
     0,
   );
+  const operationalEntityIds = new Set([
+    incident.id,
+    ...needs.map((need) => need.id),
+    ...incidentTasks.map((task) => task.id),
+    ...assignedResources.map((resource) => resource.id),
+    ...activities.map((activity) => activity.id),
+  ]);
+  const operationalAuditLogs = auditLogs
+    .filter(
+      (log) =>
+        operationalEntityIds.has(log.entityId) &&
+        [
+          "program",
+          "need",
+          "task",
+          "resource",
+          "resource_commitment",
+          "partner_activity",
+        ].includes(log.entityType),
+    )
+    .slice(0, 6);
+  const sitrepIds = new Set(sitreps.map((sitrep) => sitrep.id));
+  const sitrepAuditLogs = auditLogs
+    .filter((log) => log.entityType === "sitrep" && sitrepIds.has(log.entityId))
+    .slice(0, 5);
 
   return (
     <AppShell active="Programs">
@@ -149,6 +184,14 @@ export default async function IncidentDetailPage({
             <Info label="Started" value={formatDateTime(incident.startTime)} />
             <Info label="Program lead" value={incident.lead} />
           </dl>
+        </section>
+
+        <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+          <SectionHeader title="Operational Audit" />
+          <AuditLogList
+            emptyMessage="No operational mutations have been recorded for this program."
+            logs={operationalAuditLogs}
+          />
         </section>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
@@ -237,48 +280,78 @@ export default async function IncidentDetailPage({
         </section>
 
         <div id="map">
-          <OpsMap focusIncident={incident} incidents={allIncidents} />
+          <OpsMap
+            activities={activities}
+            focusIncident={incident}
+            incidents={allIncidents}
+            needs={needs}
+            resources={assignedResources}
+            teams={deployedTeams}
+          />
         </div>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="needs">
           <SectionHeader title="Needs" />
-          <div className="mt-4 grid gap-3 lg:grid-cols-2">
-            {needs.map((need) => (
-              <article className="rounded-lg border border-zinc-200 p-4" key={need.id}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-zinc-950">{need.category}</p>
-                    <p className="mt-1 text-sm text-zinc-500">{need.locationName}</p>
+          <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(360px,0.8fr)_minmax(0,1.2fr)]">
+            <NeedSubmissionForm
+              currentUserName={currentUser?.name ?? null}
+              currentUserRole={currentUser?.role ?? null}
+              incidentId={incident.id}
+            />
+            <div className="grid gap-3 lg:grid-cols-2">
+              {needs.map((need) => (
+                <article className="rounded-lg border border-zinc-200 p-4" key={need.id}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-zinc-950">{need.category}</p>
+                      <p className="mt-1 text-sm text-zinc-500">{need.locationName}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <PriorityBadge priority={need.urgency} />
+                      <StatusBadge status={need.status} />
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <PriorityBadge priority={need.urgency} />
-                    <StatusBadge status={need.status} />
-                  </div>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-zinc-600">{need.notes}</p>
-                <p className="mt-3 text-sm font-semibold text-zinc-800">
-                  {formatNumber(need.quantity)} {need.unit} for{" "}
-                  {formatNumber(need.affectedPeople)} people
-                </p>
-              </article>
-            ))}
+                  <p className="mt-3 text-sm leading-6 text-zinc-600">{need.notes}</p>
+                  <p className="mt-3 text-sm font-semibold text-zinc-800">
+                    {formatNumber(need.quantity)} {need.unit} for{" "}
+                    {formatNumber(need.affectedPeople)} people
+                  </p>
+                  <NeedVerificationControl
+                    currentStatus={need.status}
+                    currentUserRole={currentUser?.role ?? null}
+                    needId={need.id}
+                  />
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="tasks">
           <SectionHeader title="Tasks" />
-          <div className="mt-4 divide-y divide-zinc-200">
-            {incidentTasks.map((task) => (
-              <article className="grid gap-3 py-4 lg:grid-cols-[1.2fr_0.7fr_0.6fr_0.6fr] lg:items-center" key={task.id}>
-                <div>
-                  <p className="font-semibold text-zinc-950">{task.title}</p>
-                  <p className="mt-1 text-sm text-zinc-500">{task.description}</p>
-                </div>
-                <p className="text-sm font-semibold text-zinc-700">{task.assignee}</p>
-                <StatusBadge status={task.status} />
-                <p className="text-sm text-zinc-500">{formatDateTime(task.dueTime)}</p>
-              </article>
-            ))}
+          <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(360px,0.8fr)_minmax(0,1.2fr)]">
+            <TaskAssignmentForm
+              currentUserRole={currentUser?.role ?? null}
+              incidentId={incident.id}
+            />
+            <div className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 px-4">
+              {incidentTasks.map((task) => (
+                <article className="grid gap-3 py-4 lg:grid-cols-[1.2fr_0.7fr_0.6fr_0.8fr_1fr] lg:items-center" key={task.id}>
+                  <div>
+                    <p className="font-semibold text-zinc-950">{task.title}</p>
+                    <p className="mt-1 text-sm text-zinc-500">{task.description}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-zinc-700">{task.assignee}</p>
+                  <StatusBadge status={task.status} />
+                  <p className="text-sm text-zinc-500">{formatDateTime(task.dueTime)}</p>
+                  <TaskStatusControl
+                    currentStatus={task.status}
+                    currentUserRole={currentUser?.role ?? null}
+                    taskId={task.id}
+                  />
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -401,13 +474,17 @@ export default async function IncidentDetailPage({
 
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="sitreps">
           <SectionHeader title="Situation Reports" />
-          <div className="mt-4">
+          <div className="mt-4 grid gap-5 xl:grid-cols-2">
             <AiSitrepDraft
               currentUserRole={currentUser?.role ?? null}
               incidentId={incident.id}
             />
+            <ManualSitrepForm
+              currentUserRole={currentUser?.role ?? null}
+              incidentId={incident.id}
+            />
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-5 space-y-3">
             {sitreps.length ? (
               sitreps.map((sitrep) => (
                 <article className="rounded-lg border border-zinc-200 p-4" key={sitrep.id}>
@@ -420,13 +497,52 @@ export default async function IncidentDetailPage({
                         {sitrep.summary}
                       </p>
                     </div>
-                    <Link
-                      className="text-sm font-semibold text-[#244a9b]"
-                      href={`/api/sitreps/${sitrep.id}/export`}
-                    >
-                      Export
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-3 text-sm font-semibold">
+                      <StatusBadge status={sitrep.status} />
+                      <span className="text-zinc-500">Rev {sitrep.revision}</span>
+                      <Link
+                        className="text-[#244a9b]"
+                        href={`/api/sitreps/${sitrep.id}/export`}
+                      >
+                        TXT
+                      </Link>
+                      <Link
+                        className="text-[#244a9b]"
+                        href={`/api/sitreps/${sitrep.id}/export?format=pdf`}
+                      >
+                        PDF
+                      </Link>
+                      <Link
+                        className="text-[#244a9b]"
+                        href={`/api/sitreps/${sitrep.id}/export?format=pdf&variant=donor`}
+                      >
+                        Donor PDF
+                      </Link>
+                    </div>
                   </div>
+                  <div className="mt-3 grid gap-2 text-xs font-semibold text-zinc-500 md:grid-cols-3">
+                    <p>Created {formatDateTime(sitrep.createdAt)}</p>
+                    {sitrep.submittedAt ? (
+                      <p>Submitted {formatDateTime(sitrep.submittedAt)}</p>
+                    ) : null}
+                    {sitrep.reviewedAt ? (
+                      <p>
+                        Reviewed {formatDateTime(sitrep.reviewedAt)}
+                        {sitrep.reviewedBy ? ` by ${sitrep.reviewedBy}` : ""}
+                      </p>
+                    ) : null}
+                  </div>
+                  {sitrep.reviewComment ? (
+                    <p className="mt-3 rounded-md bg-zinc-50 p-3 text-sm text-zinc-600">
+                      {sitrep.reviewComment}
+                    </p>
+                  ) : null}
+                  <SitrepStatusControl
+                    currentStatus={sitrep.status}
+                    currentUserRole={currentUser?.role ?? null}
+                    reviewComment={sitrep.reviewComment}
+                    sitrepId={sitrep.id}
+                  />
                 </article>
               ))
             ) : (
@@ -434,6 +550,13 @@ export default async function IncidentDetailPage({
                 No situation reports have been generated for this program.
               </p>
             )}
+          </div>
+          <div className="mt-6 border-t border-zinc-200 pt-5">
+            <SectionHeader title="SitRep Audit" />
+            <AuditLogList
+              emptyMessage="No SitRep audit records have been recorded yet."
+              logs={sitrepAuditLogs}
+            />
           </div>
         </section>
       </div>
@@ -464,6 +587,47 @@ function Info({ label, value }: { label: string; value: string }) {
     <div>
       <dt className="font-semibold text-zinc-500">{label}</dt>
       <dd className="mt-1 font-semibold text-zinc-950">{value}</dd>
+    </div>
+  );
+}
+
+function AuditLogList({
+  emptyMessage,
+  logs,
+}: {
+  emptyMessage: string;
+  logs: Awaited<ReturnType<typeof data.listAuditLogs>>;
+}) {
+  if (!logs.length) {
+    return (
+      <p className="mt-4 rounded-md border border-zinc-200 p-4 text-sm text-zinc-500">
+        {emptyMessage}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 divide-y divide-zinc-200 rounded-md border border-zinc-200">
+      {logs.map((log) => (
+        <article className="p-4" key={log.id}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-zinc-950">
+                {log.summary}
+              </p>
+              <p className="mt-1 text-xs font-semibold uppercase text-zinc-500">
+                {log.entityType} / {log.action}
+              </p>
+            </div>
+            <p className="text-xs font-semibold text-zinc-500">
+              {formatDateTime(log.createdAt)}
+            </p>
+          </div>
+          <p className="mt-2 text-sm text-zinc-600">
+            Recorded by {log.actorName}
+          </p>
+        </article>
+      ))}
     </div>
   );
 }

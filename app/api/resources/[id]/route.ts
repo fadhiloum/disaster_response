@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../audit";
 
 export async function PATCH(
   request: Request,
@@ -19,13 +20,34 @@ export async function PATCH(
   }
 
   const payload = await request.json();
+  const updatedResource = await data.updateResource(id, {
+    name: payload.name,
+    category: payload.category,
+    quantityAvailable:
+      payload.quantityAvailable !== undefined
+        ? Number(payload.quantityAvailable)
+        : undefined,
+    quantityCommitted:
+      payload.quantityCommitted !== undefined
+        ? Number(payload.quantityCommitted)
+        : undefined,
+    unit: payload.unit,
+    warehouseLocation: payload.warehouseLocation,
+    receivedAt: payload.receivedAt,
+    expiryDate: payload.expiryDate,
+  });
+  await recordAudit({
+    action: "update",
+    actor: auth.user,
+    after: updatedResource ?? resource,
+    before: resource,
+    entityId: id,
+    entityType: "resource",
+    summary: `Updated resource ${resource.name}`,
+  });
 
   return Response.json({
-    data: {
-      ...resource,
-      ...payload,
-      id: resource.id,
-    },
+    data: updatedResource ?? resource,
     mode: data.backend,
   });
 }

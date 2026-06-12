@@ -28,6 +28,16 @@ type DeploymentLogEntry = {
   deployedAt: string;
 };
 
+const emptyResourceForm = {
+  name: "",
+  category: "",
+  quantityAvailable: "1",
+  unit: "",
+  warehouseLocation: "",
+  receivedAt: "",
+  expiryDate: "",
+};
+
 export function DeploymentWorkspace({
   incidents,
   initialResources,
@@ -48,6 +58,12 @@ export function DeploymentWorkspace({
     {},
   );
   const [deploymentLog, setDeploymentLog] = useState<DeploymentLogEntry[]>([]);
+  const [resourceForm, setResourceForm] = useState(emptyResourceForm);
+  const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
+  const [resourceStatus, setResourceStatus] = useState<string | null>(null);
+  const [deploymentStatus, setDeploymentStatus] = useState<string | null>(null);
+  const [isSavingResource, setIsSavingResource] = useState(false);
+  const [isDeployingItems, setIsDeployingItems] = useState(false);
   const [teamForm, setTeamForm] = useState({
     incidentId: incidents[0]?.id ?? "",
     name: "",
@@ -70,8 +86,9 @@ export function DeploymentWorkspace({
     [resources],
   );
 
-  function confirmItemDeployment() {
+  async function confirmItemDeployment() {
     const chosenResources = fifoResources.filter((resource) => selected[resource.id]);
+    setDeploymentStatus(null);
 
     if (!chosenResources.length) {
       window.alert("Select at least one item to deploy.");
@@ -93,34 +110,134 @@ export function DeploymentWorkspace({
     }
 
     const deployedAt = new Date().toISOString();
-    const nextLog: DeploymentLogEntry[] = chosenResources.map((resource) => ({
-      id: `${resource.id}-${deployedAt}`,
-      incidentId: incidentByResource[resource.id],
-      quantity: quantityByResource[resource.id] ?? 1,
-      resourceName: resource.name,
-      unit: resource.unit,
-      deployedAt,
-    }));
+    setIsDeployingItems(true);
+
+    const responses = await Promise.all(
+      chosenResources.map(async (resource) => {
+        const quantity = quantityByResource[resource.id] ?? 1;
+        const response = await fetch(`/api/resources/${resource.id}/commit`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            incidentId: incidentByResource[resource.id],
+            quantity,
+            note: "Deployment workspace commitment",
+          }),
+        });
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => null);
+          throw new Error(result?.error ?? "Could not confirm deployment.");
+        }
+
+        const result = (await response.json()) as { data: Resource };
+
+        return {
+          log: {
+            id: `${resource.id}-${deployedAt}`,
+            incidentId: incidentByResource[resource.id],
+            quantity,
+            resourceName: resource.name,
+            unit: resource.unit,
+            deployedAt,
+          },
+          resource: result.data,
+        };
+      }),
+    ).catch((error: Error) => {
+      setDeploymentStatus(error.message);
+      return null;
+    });
+
+    setIsDeployingItems(false);
+
+    if (!responses) {
+      return;
+    }
+
+    const nextLog = responses.map((response) => response.log);
 
     setResources((current) =>
       current.map((resource) => {
-        const logEntry = nextLog.find((entry) =>
-          entry.id.startsWith(`${resource.id}-`),
+        const updated = responses.find((response) =>
+          response.log.id.startsWith(`${resource.id}-`),
         );
 
-        if (!logEntry) {
-          return resource;
-        }
-
-        return {
-          ...resource,
-          assignedIncidentId: logEntry.incidentId,
-          quantityCommitted: resource.quantityCommitted + logEntry.quantity,
-        };
+        return updated?.resource ?? resource;
       }),
     );
     setDeploymentLog((current) => [...nextLog, ...current]);
     setSelected({});
+    setDeploymentStatus("Deployment committed.");
+  }
+
+  async function saveResource(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSavingResource(true);
+    setResourceStatus(null);
+
+    const payload = {
+      name: resourceForm.name.trim(),
+      category: resourceForm.category.trim(),
+      quantityAvailable: Number(resourceForm.quantityAvailable),
+      unit: resourceForm.unit.trim(),
+      warehouseLocation: resourceForm.warehouseLocation.trim(),
+      receivedAt: resourceForm.receivedAt,
+      expiryDate: resourceForm.expiryDate || null,
+    };
+    const response = await fetch(
+      editingResourceId ? `/api/resources/${editingResourceId}` : "/api/resources",
+      {
+        method: editingResourceId ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    setIsSavingResource(false);
+
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      setResourceStatus(result?.error ?? "Could not save inventory item.");
+      return;
+    }
+
+    const result = (await response.json()) as { data: Resource };
+
+    setResources((current) => {
+      if (editingResourceId) {
+        return current.map((resource) =>
+          resource.id === editingResourceId ? result.data : resource,
+        );
+      }
+
+      return [result.data, ...current];
+    });
+    setResourceForm(emptyResourceForm);
+    setEditingResourceId(null);
+    setResourceStatus(
+      editingResourceId ? "Inventory item updated." : "Inventory item created.",
+    );
+  }
+
+  function startEditingResource(resource: Resource) {
+    setEditingResourceId(resource.id);
+    setResourceForm({
+      category: resource.category,
+      expiryDate: resource.expiryDate ?? "",
+      name: resource.name,
+      quantityAvailable: String(resource.quantityAvailable),
+      receivedAt: resource.receivedAt,
+      unit: resource.unit,
+      warehouseLocation: resource.warehouseLocation,
+    });
+    setResourceStatus(null);
+  }
+
+  function cancelResourceEdit() {
+    setEditingResourceId(null);
+    setResourceForm(emptyResourceForm);
+    setResourceStatus(null);
   }
 
   function confirmTeamDeployment() {
@@ -164,20 +281,161 @@ export function DeploymentWorkspace({
       </div>
 
       {activeTab === "items" ? (
-        <section className="rounded-lg border border-zinc-200 bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 p-4">
-            <SectionHeader title="Item Deployment" />
-            <button
-              className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82]"
-              onClick={confirmItemDeployment}
-              type="button"
-            >
-              Confirm deployment
-            </button>
-          </div>
+        <div className="grid gap-6 xl:grid-cols-[minmax(340px,0.7fr)_minmax(0,1.3fr)]">
+          <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+            <SectionHeader
+              title={editingResourceId ? "Update Inventory" : "Create Inventory"}
+            />
+            <form className="mt-5 space-y-4" onSubmit={saveResource}>
+              <Field label="Item name">
+                <input
+                  className="input"
+                  onChange={(event) =>
+                    setResourceForm((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
+                  placeholder="Family hygiene kit"
+                  required
+                  value={resourceForm.name}
+                />
+              </Field>
+              <Field label="Category">
+                <input
+                  className="input"
+                  onChange={(event) =>
+                    setResourceForm((current) => ({
+                      ...current,
+                      category: event.target.value,
+                    }))
+                  }
+                  placeholder="WASH"
+                  required
+                  value={resourceForm.category}
+                />
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Available quantity">
+                  <input
+                    className="input"
+                    min="0"
+                    onChange={(event) =>
+                      setResourceForm((current) => ({
+                        ...current,
+                        quantityAvailable: event.target.value,
+                      }))
+                    }
+                    required
+                    type="number"
+                    value={resourceForm.quantityAvailable}
+                  />
+                </Field>
+                <Field label="Unit">
+                  <input
+                    className="input"
+                    onChange={(event) =>
+                      setResourceForm((current) => ({
+                        ...current,
+                        unit: event.target.value,
+                      }))
+                    }
+                    placeholder="kits"
+                    required
+                    value={resourceForm.unit}
+                  />
+                </Field>
+              </div>
+              <Field label="Warehouse">
+                <input
+                  className="input"
+                  onChange={(event) =>
+                    setResourceForm((current) => ({
+                      ...current,
+                      warehouseLocation: event.target.value,
+                    }))
+                  }
+                  required
+                  value={resourceForm.warehouseLocation}
+                />
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Received">
+                  <input
+                    className="input"
+                    onChange={(event) =>
+                      setResourceForm((current) => ({
+                        ...current,
+                        receivedAt: event.target.value,
+                      }))
+                    }
+                    required
+                    type="date"
+                    value={resourceForm.receivedAt}
+                  />
+                </Field>
+                <Field label="Expiry">
+                  <input
+                    className="input"
+                    onChange={(event) =>
+                      setResourceForm((current) => ({
+                        ...current,
+                        expiryDate: event.target.value,
+                      }))
+                    }
+                    type="date"
+                    value={resourceForm.expiryDate}
+                  />
+                </Field>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82] disabled:cursor-not-allowed disabled:bg-zinc-300"
+                  disabled={isSavingResource}
+                  type="submit"
+                >
+                  {isSavingResource
+                    ? "Saving..."
+                    : editingResourceId
+                      ? "Update item"
+                      : "Create item"}
+                </button>
+                {editingResourceId ? (
+                  <button
+                    className="inline-flex min-h-10 items-center justify-center rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+                    onClick={cancelResourceEdit}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                ) : null}
+              </div>
+              {resourceStatus ? (
+                <p className="text-sm font-semibold text-zinc-600">{resourceStatus}</p>
+              ) : null}
+            </form>
+          </section>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-200 text-sm">
+          <section className="rounded-lg border border-zinc-200 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 p-4">
+              <SectionHeader title="Item Deployment" />
+              <button
+                className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82] disabled:cursor-not-allowed disabled:bg-zinc-300"
+                disabled={isDeployingItems}
+                onClick={confirmItemDeployment}
+                type="button"
+              >
+                {isDeployingItems ? "Committing..." : "Confirm deployment"}
+              </button>
+            </div>
+            {deploymentStatus ? (
+              <p className="border-b border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-600">
+                {deploymentStatus}
+              </p>
+            ) : null}
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-zinc-200 text-sm">
               <thead className="bg-zinc-50 text-left text-xs font-semibold uppercase text-zinc-500">
                 <tr>
                   <th className="px-4 py-3">Select</th>
@@ -216,6 +474,13 @@ export function DeploymentWorkspace({
                         <p className="mt-1 text-zinc-500">
                           {resource.category} - {resource.warehouseLocation}
                         </p>
+                        <button
+                          className="mt-2 text-xs font-semibold text-[#244a9b]"
+                          onClick={() => startEditingResource(resource)}
+                          type="button"
+                        >
+                          Edit item
+                        </button>
                       </td>
                       <td className="px-4 py-4 text-zinc-600">
                         <p className="font-semibold text-zinc-800">Queue #{index + 1}</p>
@@ -271,10 +536,10 @@ export function DeploymentWorkspace({
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+              </table>
+            </div>
 
-          <div className="border-t border-zinc-200 p-4">
+            <div className="border-t border-zinc-200 p-4">
             <SectionHeader title="Recent item deployments" />
             <div className="mt-4 space-y-3">
               {deploymentLog.length ? (
@@ -306,8 +571,9 @@ export function DeploymentWorkspace({
                 </p>
               )}
             </div>
-          </div>
-        </section>
+            </div>
+          </section>
+        </div>
       ) : (
         <section className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(360px,1.2fr)]">
           <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">

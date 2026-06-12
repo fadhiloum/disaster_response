@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 export async function POST(
   request: Request,
@@ -28,12 +29,32 @@ export async function POST(
     );
   }
 
+  const freeQuantity = resource.quantityAvailable - resource.quantityCommitted;
+
+  if (quantity > freeQuantity) {
+    return Response.json(
+      { error: "Commit quantity exceeds available stock" },
+      { status: 409 },
+    );
+  }
+
+  const updatedResource = await data.commitResource(id, {
+    incidentId: payload.incidentId,
+    quantity,
+    note: payload.note,
+  });
+  await recordAudit({
+    action: "commit",
+    actor: auth.user,
+    after: updatedResource ?? resource,
+    before: resource,
+    entityId: id,
+    entityType: "resource_commitment",
+    summary: `Committed ${quantity} ${resource.unit} from ${resource.name}`,
+  });
+
   return Response.json({
-    data: {
-      ...resource,
-      quantityCommitted: resource.quantityCommitted + quantity,
-      assignedIncidentId: payload.incidentId ?? resource.assignedIncidentId,
-    },
+    data: updatedResource ?? resource,
     mode: data.backend,
   });
 }

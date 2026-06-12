@@ -20,10 +20,25 @@ export const drizzleRepository: DataRepository = {
   async getIncident() {
     return unavailable();
   },
+  async createIncident() {
+    return unavailable();
+  },
+  async updateIncident() {
+    return unavailable();
+  },
+  async deleteIncident() {
+    return unavailable();
+  },
   async listNeeds() {
     return unavailable();
   },
   async getIncidentNeeds() {
+    return unavailable();
+  },
+  async createNeed() {
+    return unavailable();
+  },
+  async updateNeed() {
     return unavailable();
   },
   async listTasks() {
@@ -32,10 +47,25 @@ export const drizzleRepository: DataRepository = {
   async getIncidentTasks() {
     return unavailable();
   },
+  async createTask() {
+    return unavailable();
+  },
+  async updateTask() {
+    return unavailable();
+  },
   async listResources() {
     return unavailable();
   },
   async getIncidentResources() {
+    return unavailable();
+  },
+  async createResource() {
+    return unavailable();
+  },
+  async updateResource() {
+    return unavailable();
+  },
+  async commitResource() {
     return unavailable();
   },
   async listDeployedTeams() {
@@ -50,6 +80,12 @@ export const drizzleRepository: DataRepository = {
   async getIncidentActivities() {
     return unavailable();
   },
+  async createPartnerActivity() {
+    return unavailable();
+  },
+  async updatePartnerActivity() {
+    return unavailable();
+  },
   async listSituationReports() {
     return unavailable();
   },
@@ -57,6 +93,15 @@ export const drizzleRepository: DataRepository = {
     return unavailable();
   },
   async createSituationReport() {
+    return unavailable();
+  },
+  async updateSituationReport() {
+    return unavailable();
+  },
+  async listAuditLogs() {
+    return unavailable();
+  },
+  async createAuditLog() {
     return unavailable();
   },
   async getIncidentConceptNote() {

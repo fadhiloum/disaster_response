@@ -113,8 +113,13 @@ const incidents = [
     disasterType: "FLOOD",
     severity: "CRITICAL",
     status: "ACTIVE",
+    region: "Asia Pacific",
+    country: "Malaysia",
+    state: "Sabah",
     description:
-      "River overflow has displaced low-lying communities and interrupted road access to three neighborhoods. Evacuation boats reached Zone C, while potable water remains the largest gap for shelters east of the river.",
+      "River overflow has displaced low-lying communities and interrupted road access to three neighborhoods.",
+    latestUpdate:
+      "Evacuation boats reached Zone C. Potable water remains the largest gap for shelters east of the river.",
     latitude: 6.351,
     longitude: 116.43,
     locationName: "Kota Belud District",
@@ -169,8 +174,13 @@ const incidents = [
     disasterType: "LANDSLIDE",
     severity: "HIGH",
     status: "STABILIZING",
+    region: "Asia Pacific",
+    country: "Philippines",
+    state: "Davao del Sur",
     description:
-      "Slope failure damaged housing blocks and cut off a feeder road used by medical supply vehicles. Engineering teams marked two unsafe structures and debris clearance is waiting on heavy equipment.",
+      "Slope failure damaged housing blocks and cut off a feeder road used by medical supply vehicles.",
+    latestUpdate:
+      "Engineering team marked two unsafe structures. Debris clearance is waiting on heavy equipment.",
     latitude: 7.19,
     longitude: 125.46,
     locationName: "Hill Ward Road 18",
@@ -203,8 +213,13 @@ const incidents = [
     disasterType: "FIRE",
     severity: "MODERATE",
     status: "MONITORING",
+    region: "South Asia",
+    country: "Bangladesh",
+    state: "Chattogram",
     description:
-      "Contained industrial fire with smoke exposure concerns for nearby worker dormitories. Air quality monitoring is ongoing and clinic teams report increased respiratory complaints.",
+      "Contained industrial fire with smoke exposure concerns for nearby worker dormitories.",
+    latestUpdate:
+      "Air quality monitoring is ongoing. Clinic team reports increased respiratory complaints.",
     latitude: 22.356,
     longitude: 91.783,
     locationName: "Eastport Industrial Zone",

@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../audit";
 
 export async function GET() {
   const resources = await data.listResources();
@@ -15,14 +16,31 @@ export async function POST(request: Request) {
   }
 
   const payload = await request.json();
+  const resource = await data.createResource({
+    name: payload.name,
+    category: payload.category,
+    quantityAvailable: Number(payload.quantityAvailable ?? 0),
+    quantityCommitted:
+      payload.quantityCommitted !== undefined
+        ? Number(payload.quantityCommitted)
+        : undefined,
+    unit: payload.unit,
+    warehouseLocation: payload.warehouseLocation,
+    receivedAt: payload.receivedAt,
+    expiryDate: payload.expiryDate,
+  });
+  await recordAudit({
+    action: "create",
+    actor: auth.user,
+    after: resource,
+    entityId: resource.id,
+    entityType: "resource",
+    summary: `Created resource ${resource.name}`,
+  });
 
   return Response.json(
     {
-      data: {
-        id: crypto.randomUUID(),
-        quantityCommitted: 0,
-        ...payload,
-      },
+      data: resource,
       mode: data.backend,
     },
     { status: 201 },

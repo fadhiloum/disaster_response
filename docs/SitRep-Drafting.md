@@ -8,6 +8,8 @@ is intended to reduce first-draft time, not replace human review or approval.
 
 The generated draft is not saved automatically. A coordinator should edit,
 verify, and submit the final SitRep through the normal operational workflow.
+A formal approved/rejected status workflow is still pending; saved records
+currently represent coordinator-reviewed reports.
 
 ## User Flow
 
@@ -19,8 +21,13 @@ verify, and submit the final SitRep through the normal operational workflow.
 6. Click `Save as SitRep` to create an official SitRep record from the reviewed
    draft.
 
+Coordinators can also create a SitRep manually from the Situation Reports
+section on the same program detail page without generating an AI draft.
+
 The client component for this workflow is
 `app/incidents/[id]/ai-sitrep-draft.tsx`.
+The manual SitRep form lives in
+`app/incidents/[id]/incident-workflow-forms.tsx`.
 
 ## Technical Flow
 
@@ -130,12 +137,12 @@ npm run test
 The route tests are in `tests/ai-sitrep-route.test.ts`. They mock the OpenAI
 client and verify missing-key, missing-program, and successful-draft behavior.
 `tests/sitrep-route.test.ts` covers reviewed draft persistence through the
-SitRep POST route.
+SitRep POST route and PDF export through the SitRep export route.
 
 ## Production Notes
 
 Configure `OPENAI_API_KEY` and `OPENAI_MODEL` in the hosting provider, not in
 committed files. For Vercel, use project environment variables.
 
-Before operational use, add authentication, role checks, rate limits, and an
-approval step before any AI-generated report can become an official SitRep.
+Before operational use, add rate limits and a formal approval step before a
+saved SitRep is treated as externally approved or publish-ready.

@@ -44,21 +44,83 @@ working demo MVP slice:
   prisma:deploy` and seed data loaded through `npm run prisma:seed`.
 - Program records now include master budget controls, sub-program allocations,
   and fund requests that must remain within the master budget.
+- Prisma-backed program reads and writes now preserve operational
+  location/update fields, sub-program allocations, fund requests, and resource
+  assignments.
+- Need, task, resource, resource commitment, and partner activity mutation
+  routes now persist through the shared data repository in both demo and Prisma
+  modes.
 - OpenAI SitRep drafting is implemented through the Responses API with required
   web search context and covered by mocked Vitest route tests.
+- OpenAI concept-note drafting is implemented as an editable, versioned
+  coordinator-reviewed draft flow with DOCX export.
 - The current OpenAI integration is deliberately scoped to generating editable
-  situation report drafts from existing program data plus recent external web
-  context. It does not yet power map analysis, task prioritization, chat,
-  resource matching, program creation, report export, or document generation.
+  situation report and concept-note drafts from existing program data. It does
+  not yet power map analysis, task prioritization, chat, resource matching,
+  program creation, or generalized document generation.
 - Reviewed AI SitRep drafts can now be saved through
   `POST /api/incidents/:id/sitreps` and persisted through the shared data
   repository.
+- Program detail now includes responder-facing need submission, coordinator
+  task assignment, and manual SitRep forms wired to the existing route
+  handlers.
+- The deployment workspace now includes resource create and update forms wired
+  to the resource API routes.
+- SitReps can be exported as operational, donor, or executive text/PDF variants
+  through the SitRep export endpoint.
 - Local verification commands are available through `npm run test`,
   `npm run lint`, and `npm run vercel-build`.
 
 Remaining MVP work is mostly hardening: production auth provider integration,
-production persistence writes, form validation depth, richer tests, audit logs,
-and deployment environment setup.
+form validation depth, richer tests, approval workflows, role-aware UI, and
+deployment environment setup.
+
+## Pending Features By Priority
+
+### P0: Pilot Readiness
+
+- Replace demo cookie auth with a production auth provider such as NextAuth,
+  Supabase Auth, or the selected deployment identity provider.
+- Add route-level protection for private pages.
+- Hide or disable unavailable UI actions by role.
+- Harden validation across programs, needs, tasks, resources, partner
+  activities, and SitReps.
+- Add consistent error, empty, loading, and form feedback states.
+
+### P1: Core Workflow Polish
+
+- Add SitRep edit flow for previously saved records.
+- Finish remaining SitRep approval UX beyond the current status and review
+  foundation.
+- Add audit-friendly timestamps and created-by fields to any remaining non-core
+  mutation paths.
+- Add deeper permission-check tests for API routes and repository adapters.
+
+### P2: QA And Field Usability
+
+- Add basic accessibility checks for forms, navigation, and map controls.
+- Review mobile layouts across dashboard, map, incident detail, deployment, and
+  SitRep workflows.
+- Improve role-aware UI states in needs, tasks, resources, and partner
+  workflows.
+
+### P3: Mapping And Data Scale
+
+- Add PostGIS-backed queries only when advanced geospatial filtering or
+  distance calculations are required.
+- Move to Leaflet if the map needs real pan/zoom, clustering, GeoJSON, or
+  tile-layer controls.
+- Reserve Mapbox for later production polish if pricing, token management, and
+  licensing requirements are acceptable.
+
+### P4: Expanded AI
+
+- Define privacy rules and allowed fields for each AI workflow.
+- Add schemas for map analysis, task prioritization, resource matching, program
+  creation, and operational chat.
+- Add per-user AI rate limits and request logging.
+- Add review, approval, and audit states before AI output can update records.
+- Add mocked OpenAI tests for each new AI route.
 
 ## Phase 1: Project Foundation
 
@@ -114,10 +176,11 @@ Status: partially complete.
 - Completed: Add admin view showing demo users, roles, and organizations.
 - Completed: Add shared server-side auth helpers.
 - Completed: Add role checks for mutation routes.
+- Completed: Add mutation audit logs with actor, action, entity, timestamp,
+  and before/after summaries for core operational writes.
 - Remaining: Replace demo cookie auth with a production authentication provider.
 - Remaining: Add route-level protection for private pages.
 - Remaining: Hide or disable unavailable UI actions by role.
-- Remaining: Add audit logs that record the authenticated actor for mutations.
 
 ### Exit Criteria
 
@@ -154,7 +217,7 @@ Status: partially complete for demo mode.
   - `PATCH /api/incidents/:id`
   - `DELETE /api/incidents/:id`
 - Completed: Add `/incidents/[id]/edit` page.
-- Remaining: Persist create/update/delete operations in Prisma-backed mode.
+- Completed: Persist create/update/delete operations in Prisma-backed mode.
 - Remaining: Add stricter validation for required fields, status, severity,
   disaster type, and coordinates.
 
@@ -182,10 +245,13 @@ Status: partially complete for demo mode.
   - `GET /api/incidents/:id/tasks`
   - `POST /api/incidents/:id/tasks`
   - `PATCH /api/tasks/:id`
-- Remaining: Add responder-facing need submission UI.
-- Remaining: Add coordinator task creation and assignment UI.
-- Remaining: Persist status workflow changes in Prisma-backed mode.
-- Remaining: Add validation and role checks.
+- Completed: Add responder-facing need submission UI.
+- Completed: Add coordinator task creation and assignment UI.
+- Completed: Persist need and task create/update operations in Prisma-backed
+  mode.
+- Completed: Add task status update UI for responders.
+- Completed: Add need verification UI for coordinators.
+- Remaining: Add validation depth and role-aware UI states.
 
 ### Exit Criteria
 
@@ -214,10 +280,12 @@ Status: partially complete for demo mode.
   - `POST /api/incidents/:id/activities`
   - `PATCH /api/activities/:id`
 - Completed: Add deployment workspace for teams, programs, and resources.
-- Remaining: Add full resource creation and update forms.
-- Remaining: Persist resource commitments and partner activity changes in
-  Prisma-backed mode.
-- Remaining: Add validation, role checks, and stock conflict handling.
+- Completed: Add resource creation and update forms in the deployment
+  workspace.
+- Completed: Persist resources, resource commitments, and partner activity
+  changes in Prisma-backed mode.
+- Completed: Add basic stock conflict handling for resource commitments.
+- Remaining: Add deeper validation and role-aware UI states.
 
 ### Exit Criteria
 
@@ -245,10 +313,14 @@ Status: mostly complete for demo mode.
 - Completed: Build `/map` operational map view.
 - Completed: Add map data for programs, needs, resources, teams, and partner
   activities.
-- Remaining: Add richer map layer controls and filters by program, type,
+- Completed: Add richer map layer controls and filters by program, type,
   urgency, status, and organization.
-- Remaining: Evaluate Leaflet or Mapbox if the current map needs more advanced
-  geospatial interaction.
+- Completed: Evaluate the next map provider step: keep the current lightweight
+  map for MVP, use Leaflet first when true pan, zoom, clustering, GeoJSON, or
+  tile-layer controls are needed, and reserve Mapbox for a later polished
+  production map that can justify token, pricing, and licensing requirements.
+- Remaining: Consider PostGIS-backed queries when advanced geospatial filtering
+  or distance calculations become required.
 
 ### Exit Criteria
 
@@ -269,7 +341,7 @@ Status: partially complete, with AI drafting implemented.
 
 - Completed: Build `/sitreps` list page.
 - Completed: Build Situation Reports section in program detail.
-- Remaining: Add create/edit flow for SitRep sections:
+- Completed: Add manual create flow for SitRep sections:
   - Summary
   - Current impact
   - Priority needs
@@ -277,7 +349,9 @@ Status: partially complete, with AI drafting implemented.
   - Gaps
   - Next operational period priorities
 - Completed: Add text export endpoint.
-- Remaining: Add PDF export after report layout is stable.
+- Completed: Add PDF export endpoint.
+- Completed: Add operational, donor, and executive SitRep export variants with
+  more polished TXT and PDF output.
 - Completed: Add AI-assisted draft generation from program, needs, task,
   resource, team, partner, previous report, budget, and fund request context.
 - Completed: Require OpenAI web search during SitRep generation to add recent
@@ -294,15 +368,17 @@ Status: partially complete, with AI drafting implemented.
 - Completed: Add focused docs in `docs/OpenAI-Integration.md` and
   `docs/SitRep-Drafting.md`.
 - Completed: Add Vitest coverage for the AI SitRep draft and SitRep save routes.
-- Remaining: Add PDF export.
-- Remaining: Add approval workflow and audit trail.
+- Completed: Add Vitest coverage for PDF SitRep export.
+- Remaining: Add SitRep edit flow for previously saved records.
+- Remaining: Finish approval workflow UX beyond the current status, review, and
+  audit trail foundation.
 
 ### Exit Criteria
 
 - Coordinators can create SitReps for programs.
 - Coordinators can generate editable AI SitRep drafts from program data and
   recent web context.
-- SitReps can be exported as text or PDF.
+- SitReps can be exported as operational, donor, or executive text/PDF variants.
 - Report content reflects current program data.
 
 ## Phase 8: Admin and Hardening
@@ -319,8 +395,10 @@ Status: started.
 - Completed: Add initial Vitest setup and route tests for OpenAI SitRep
   drafting.
 - Completed: Add contributor guide in `AGENTS.md`.
+- Completed: Surface recent audit history for operational updates and SitReps
+  on the program detail page.
 - Remaining: Add audit-friendly timestamps and created-by fields consistently
-  across mutation paths.
+  across any remaining non-core mutation paths.
 - Remaining: Add error states, empty states, loading states, and form validation
   feedback across all workflows.
 - Remaining: Add tests for high-risk API routes, repository adapters, and
@@ -358,10 +436,10 @@ Status: future scope.
   address verified needs.
 - Program creation: draft program records from responder notes or intake text
   while requiring human review before saving.
-- Report export: generate executive summaries or donor-ready variants from
-  reviewed SitRep content.
-- Document generation: draft concept notes, briefings, and partner updates from
-  approved program data.
+- Report export: generate AI-assisted executive summaries or donor-ready
+  narrative variants beyond the current reviewed static export variants.
+- Document generation: draft briefings and partner updates from approved
+  program data.
 
 ### Work Items
 
@@ -394,16 +472,18 @@ Status: future scope.
 
 1. Mostly complete: Local app, schema, demo data, and layout are working.
 2. Partially complete: Cookie auth and mutation role checks exist; production
-   auth provider, page protection, and audit logs remain.
-3. Partially complete: Program pages and route handlers exist; durable Prisma
-   writes and validation need hardening.
-4. Partially complete: Needs and task data is visible with route handlers;
-   full workflow UI and persistence need hardening.
+   auth provider, page protection, and role-aware page UI remain.
+3. Partially complete: Program pages, route handlers, and durable Prisma writes
+   exist; validation needs hardening.
+4. Partially complete: Needs and task data is visible with route handlers and
+   create forms; status workflow UI and validation need hardening.
 5. Partially complete: Resources and partner 3W are visible with route
-   handlers; creation, validation, and durable writes need hardening.
+   handlers; resource creation/update forms and durable writes exist;
+   validation needs hardening.
 6. Mostly complete: Dashboard and map provide a useful demo operating picture.
-7. Partially complete: SitReps can be listed and exported as text; AI drafts can
-   be generated; PDF export and approval workflow remain.
+7. Partially complete: SitReps can be listed, manually created, generated from
+   AI drafts, and exported as operational, donor, or executive text/PDF
+   variants; edit and approval UX remain.
 8. Started: Admin view and AI route tests exist; broader tests, permissions,
    accessibility, and mobile polish remain.
 
@@ -414,16 +494,18 @@ Status: future scope.
 - Map provider: Leaflet is simpler for MVP, Mapbox may be better for polished production mapping.
 - Geospatial depth: MVP can store coordinates directly, but advanced filtering should use PostGIS.
 - Offline mode: useful for field responders, but should remain post-MVP unless explicitly prioritized.
-- PDF generation: should be added after SitRep content and layout are stable.
+- PDF generation: SitRep exports now have operational, donor, and executive
+  variants; production donor templates can still be refined later if branding
+  or print layout requirements become stricter.
 - File uploads: attachments and photos should be scoped carefully to avoid delaying core workflows.
 - AI output governance: generated operational text must remain draft-only until
   reviewed by an accountable coordinator.
 - OpenAI data handling: review prompt payloads against privacy policy before
   production use.
 - Expanded AI scope: map analysis, task prioritization, chat, resource matching,
-  program creation, report export, and document generation should remain future
-  scope until auth, audit logging, rate limits, and approval workflows are in
-  place.
+  program creation, AI-generated report variants beyond the current static
+  exports, and generalized document generation should remain future scope until
+  auth, audit logging, rate limits, and approval workflows are in place.
 
 ## Suggested First Build Slice
 
