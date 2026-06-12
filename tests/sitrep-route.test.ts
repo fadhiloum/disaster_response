@@ -181,4 +181,30 @@ describe("SitRep route", () => {
     expect(body).toContain("%PDF-1.4");
     expect(body).toContain("Riverside Flood Response");
   });
+
+  it("keeps long SitRep PDF exports across multiple pages", async () => {
+    const longReport = {
+      ...savedReport,
+      summary: Array.from({ length: 240 }, (_value, index) => `summary line ${index + 1}`)
+        .join(" "),
+      nextPriorities: "final marker after pagination",
+    };
+    vi.doMock("@/app/lib/data", () => ({
+      data: {
+        getIncident: vi.fn(async () => incident),
+        listSituationReports: vi.fn(async () => [longReport]),
+      },
+    }));
+    const { GET } = await loadExportRoute();
+
+    const response = await GET(
+      new Request("http://localhost/api/sitreps/sitrep-new/export?format=pdf"),
+      { params: Promise.resolve({ id: savedReport.id }) },
+    );
+    const body = new TextDecoder().decode(await response.arrayBuffer());
+
+    expect(response.status).toBe(200);
+    expect(body).toMatch(/\/Count [2-9]/);
+    expect(body).toContain("final marker after pagination");
+  });
 });

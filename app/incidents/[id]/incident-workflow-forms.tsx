@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { Role } from "@/app/lib/data/types";
+import type { NeedStatus, Role, TaskStatus } from "@/app/lib/data/types";
 
 type WorkflowStatus = {
   tone: "success" | "error";
@@ -41,6 +41,21 @@ const emptySitrepForm = {
   nextPriorities: "",
 };
 
+const needStatusOptions = [
+  { value: "reported", label: "Reported" },
+  { value: "verified", label: "Verified" },
+  { value: "assigned", label: "Assigned" },
+  { value: "fulfilled", label: "Fulfilled" },
+  { value: "closed", label: "Closed" },
+] satisfies Array<{ value: NeedStatus; label: string }>;
+
+const taskStatusOptions = [
+  { value: "todo", label: "To do" },
+  { value: "in progress", label: "In progress" },
+  { value: "blocked", label: "Blocked" },
+  { value: "done", label: "Done" },
+] satisfies Array<{ value: TaskStatus; label: string }>;
+
 export function NeedSubmissionForm({
   currentUserName,
   currentUserRole,
@@ -70,18 +85,37 @@ export function NeedSubmissionForm({
     setIsSubmitting(true);
     setStatus(null);
 
+    const quantity = Number(form.quantity);
+    const affectedPeople = Number(form.affectedPeople);
+    const latitude = Number(form.latitude);
+    const longitude = Number(form.longitude);
+
+    if (
+      !isPositiveNumber(quantity) ||
+      !isPositiveNumber(affectedPeople) ||
+      !isCoordinate(latitude) ||
+      !isCoordinate(longitude)
+    ) {
+      setIsSubmitting(false);
+      setStatus({
+        tone: "error",
+        message: "Enter valid quantity, affected people, latitude, and longitude values.",
+      });
+      return;
+    }
+
     const response = await fetch(`/api/incidents/${incidentId}/needs`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         category: form.category.trim(),
         urgency: form.urgency,
-        quantity: Number(form.quantity),
+        quantity,
         unit: form.unit.trim(),
-        affectedPeople: Number(form.affectedPeople),
+        affectedPeople,
         locationName: form.locationName.trim(),
-        latitude: Number(form.latitude),
-        longitude: Number(form.longitude),
+        latitude,
+        longitude,
         notes: form.notes.trim(),
         reportedBy: form.reportedBy.trim() || currentUserName || "Field responder",
       }),
@@ -242,6 +276,14 @@ export function TaskAssignmentForm({
     setIsSubmitting(true);
     setStatus(null);
 
+    const dueTime = form.dueTime ? new Date(form.dueTime) : null;
+
+    if (!dueTime || Number.isNaN(dueTime.getTime())) {
+      setIsSubmitting(false);
+      setStatus({ tone: "error", message: "Enter a valid due time." });
+      return;
+    }
+
     const response = await fetch(`/api/incidents/${incidentId}/tasks`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -249,7 +291,7 @@ export function TaskAssignmentForm({
         title: form.title.trim(),
         assignee: form.assignee.trim(),
         priority: form.priority,
-        dueTime: form.dueTime ? new Date(form.dueTime).toISOString() : "",
+        dueTime: dueTime.toISOString(),
         locationName: form.locationName.trim(),
         description: form.description.trim(),
       }),
@@ -377,10 +419,20 @@ export function ManualSitrepForm({
     setIsSubmitting(true);
     setStatus(null);
 
+    const payload = {
+      reportingPeriod: form.reportingPeriod.trim(),
+      summary: form.summary.trim(),
+      impact: form.impact.trim(),
+      priorityNeeds: form.priorityNeeds.trim(),
+      responseActions: form.responseActions.trim(),
+      gaps: form.gaps.trim(),
+      nextPriorities: form.nextPriorities.trim(),
+    };
+
     const response = await fetch(`/api/incidents/${incidentId}/sitreps`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
 
     setIsSubmitting(false);
@@ -434,6 +486,154 @@ export function ManualSitrepForm({
         </div>
       </form>
     </WorkflowPanel>
+  );
+}
+
+export function NeedVerificationControl({
+  currentStatus,
+  currentUserRole,
+  needId,
+}: {
+  currentStatus: NeedStatus;
+  currentUserRole: Role | null;
+  needId: string;
+}) {
+  const router = useRouter();
+  const [statusValue, setStatusValue] = useState<NeedStatus>(currentStatus);
+  const [status, setStatus] = useState<WorkflowStatus | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const canVerify = hasAnyRole(currentUserRole, ["Admin", "Coordinator"]);
+
+  if (!canVerify) {
+    return null;
+  }
+
+  async function updateNeedStatus(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setStatus(null);
+
+    const response = await fetch(`/api/needs/${needId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: statusValue }),
+    });
+
+    setIsSubmitting(false);
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      setStatus({
+        tone: "error",
+        message: payload?.error ?? "Could not update need status.",
+      });
+      return;
+    }
+
+    setStatus({ tone: "success", message: "Need status updated." });
+    router.refresh();
+  }
+
+  return (
+    <form className="mt-4 flex flex-wrap items-end gap-3" onSubmit={updateNeedStatus}>
+      <label className="min-w-40 flex-1">
+        <span className="text-xs font-semibold uppercase text-zinc-500">
+          Verification
+        </span>
+        <select
+          className="input mt-2"
+          disabled={isSubmitting}
+          onChange={(event) => setStatusValue(event.target.value as NeedStatus)}
+          value={statusValue}
+        >
+          {needStatusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <SubmitButton disabled={isSubmitting}>
+        {isSubmitting ? "Updating..." : "Update"}
+      </SubmitButton>
+      <StatusMessage status={status} />
+    </form>
+  );
+}
+
+export function TaskStatusControl({
+  currentStatus,
+  currentUserRole,
+  taskId,
+}: {
+  currentStatus: TaskStatus;
+  currentUserRole: Role | null;
+  taskId: string;
+}) {
+  const router = useRouter();
+  const [statusValue, setStatusValue] = useState<TaskStatus>(currentStatus);
+  const [status, setStatus] = useState<WorkflowStatus | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const canUpdate = hasAnyRole(currentUserRole, [
+    "Admin",
+    "Coordinator",
+    "Responder",
+  ]);
+
+  if (!canUpdate) {
+    return null;
+  }
+
+  async function updateTaskStatus(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setStatus(null);
+
+    const response = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: statusValue }),
+    });
+
+    setIsSubmitting(false);
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      setStatus({
+        tone: "error",
+        message: payload?.error ?? "Could not update task status.",
+      });
+      return;
+    }
+
+    setStatus({ tone: "success", message: "Task status updated." });
+    router.refresh();
+  }
+
+  return (
+    <form className="flex flex-wrap items-end gap-3" onSubmit={updateTaskStatus}>
+      <label className="min-w-36 flex-1">
+        <span className="text-xs font-semibold uppercase text-zinc-500">
+          Status
+        </span>
+        <select
+          className="input mt-2"
+          disabled={isSubmitting}
+          onChange={(event) => setStatusValue(event.target.value as TaskStatus)}
+          value={statusValue}
+        >
+          {taskStatusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <SubmitButton disabled={isSubmitting}>
+        {isSubmitting ? "Updating..." : "Update"}
+      </SubmitButton>
+      <StatusMessage status={status} />
+    </form>
   );
 }
 
@@ -514,4 +714,12 @@ function StatusMessage({ status }: { status: WorkflowStatus | null }) {
 
 function hasAnyRole(role: Role | null, allowedRoles: Role[]) {
   return Boolean(role && allowedRoles.includes(role));
+}
+
+function isPositiveNumber(value: number) {
+  return Number.isFinite(value) && value > 0;
+}
+
+function isCoordinate(value: number) {
+  return Number.isFinite(value);
 }

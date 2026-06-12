@@ -21,8 +21,10 @@ import { AiConceptNoteDraft } from "./ai-concept-note-draft";
 import { AiSitrepDraft } from "./ai-sitrep-draft";
 import {
   ManualSitrepForm,
+  NeedVerificationControl,
   NeedSubmissionForm,
   TaskAssignmentForm,
+  TaskStatusControl,
 } from "./incident-workflow-forms";
 
 const incidentTabs = [
@@ -271,6 +273,11 @@ export default async function IncidentDetailPage({
                     {formatNumber(need.quantity)} {need.unit} for{" "}
                     {formatNumber(need.affectedPeople)} people
                   </p>
+                  <NeedVerificationControl
+                    currentStatus={need.status}
+                    currentUserRole={currentUser?.role ?? null}
+                    needId={need.id}
+                  />
                 </article>
               ))}
             </div>
@@ -286,7 +293,7 @@ export default async function IncidentDetailPage({
             />
             <div className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 px-4">
               {incidentTasks.map((task) => (
-                <article className="grid gap-3 py-4 lg:grid-cols-[1.2fr_0.7fr_0.6fr_0.6fr] lg:items-center" key={task.id}>
+                <article className="grid gap-3 py-4 lg:grid-cols-[1.2fr_0.7fr_0.6fr_0.8fr_1fr] lg:items-center" key={task.id}>
                   <div>
                     <p className="font-semibold text-zinc-950">{task.title}</p>
                     <p className="mt-1 text-sm text-zinc-500">{task.description}</p>
@@ -294,6 +301,11 @@ export default async function IncidentDetailPage({
                   <p className="text-sm font-semibold text-zinc-700">{task.assignee}</p>
                   <StatusBadge status={task.status} />
                   <p className="text-sm text-zinc-500">{formatDateTime(task.dueTime)}</p>
+                  <TaskStatusControl
+                    currentStatus={task.status}
+                    currentUserRole={currentUser?.role ?? null}
+                    taskId={task.id}
+                  />
                 </article>
               ))}
             </div>

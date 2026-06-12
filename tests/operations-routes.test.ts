@@ -37,9 +37,11 @@ function mockDataRepository(options: { incidentExists?: boolean } = {}) {
     getIncident: vi.fn(async () =>
       options.incidentExists === false ? undefined : incident,
     ),
+    listNeeds: vi.fn(async () => [need]),
     getIncidentNeeds: vi.fn(async () => [need]),
     createNeed: vi.fn(async (input) => ({ ...need, ...input, status: "reported" })),
     updateNeed: vi.fn(async (id, input) => ({ ...need, ...input, id })),
+    listTasks: vi.fn(async () => [task]),
     getIncidentTasks: vi.fn(async () => [task]),
     createTask: vi.fn(async (input) => ({ ...task, ...input, status: "todo" })),
     updateTask: vi.fn(async (id, input) => ({ ...task, ...input, id })),
@@ -194,6 +196,87 @@ describe("Operational routes", () => {
         createdById: "user-coordinator",
       }),
     );
+  });
+
+  it("requires coordinator-level access to verify needs", async () => {
+    const data = mockDataRepository();
+    const requireRole = mockAuth();
+    const { PATCH } = await import("@/app/api/needs/[id]/route");
+
+    const response = await PATCH(
+      new Request("http://localhost", {
+        body: JSON.stringify({ status: "verified" }),
+        method: "PATCH",
+      }),
+      { params: Promise.resolve({ id: need.id }) },
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(requireRole).toHaveBeenCalledWith(["Admin", "Coordinator"]);
+    expect(payload.data).toMatchObject({
+      id: need.id,
+      status: "verified",
+    });
+    expect(data.updateNeed).toHaveBeenCalledWith(need.id, {
+      affectedPeople: undefined,
+      category: undefined,
+      latitude: undefined,
+      locationName: undefined,
+      longitude: undefined,
+      notes: undefined,
+      quantity: undefined,
+      status: "verified",
+      unit: undefined,
+      urgency: undefined,
+      verifiedById: "user-coordinator",
+    });
+  });
+
+  it("allows responders to update task status", async () => {
+    const data = mockDataRepository();
+    const requireRole = mockAuth({
+      user: {
+        id: "user-responder",
+        name: "Anika Rao",
+        email: "anika.rao@example.org",
+        role: "Responder",
+        organization: "Field Team North",
+      },
+    });
+    const { PATCH } = await import("@/app/api/tasks/[id]/route");
+
+    const response = await PATCH(
+      new Request("http://localhost", {
+        body: JSON.stringify({ status: "in progress" }),
+        method: "PATCH",
+      }),
+      { params: Promise.resolve({ id: task.id }) },
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(requireRole).toHaveBeenCalledWith([
+      "Admin",
+      "Coordinator",
+      "Responder",
+    ]);
+    expect(payload.data).toMatchObject({
+      id: task.id,
+      status: "in progress",
+    });
+    expect(data.updateTask).toHaveBeenCalledWith(task.id, {
+      assignee: undefined,
+      assigneeId: undefined,
+      description: undefined,
+      dueTime: undefined,
+      latitude: undefined,
+      locationName: undefined,
+      longitude: undefined,
+      priority: undefined,
+      status: "in progress",
+      title: undefined,
+    });
   });
 
   it("requires partner-capable access to create activities", async () => {

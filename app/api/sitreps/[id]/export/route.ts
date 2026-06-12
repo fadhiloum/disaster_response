@@ -64,17 +64,34 @@ function createSimplePdf(text: string) {
     .split("\n")
     .flatMap((line) => wrapText(normalizePdfText(line), 92));
   const pageHeight = 792;
-  const contentLines = lines.slice(0, 46);
-  const textCommands = contentLines
-    .map((line, index) => `1 0 0 1 54 ${pageHeight - 72 - index * 14} Tm (${escapePdfText(line)}) Tj`)
-    .join("\n");
-  const content = `BT\n/F1 10 Tf\n14 TL\n${textCommands}\nET`;
+  const linesPerPage = 46;
+  const pages = chunk(lines.length ? lines : [""], linesPerPage);
+  const pageObjectStart = 3;
+  const fontObjectNumber = pageObjectStart + pages.length * 2;
+  const pageObjects = pages.flatMap((pageLines, pageIndex) => {
+    const pageObjectNumber = pageObjectStart + pageIndex * 2;
+    const contentObjectNumber = pageObjectNumber + 1;
+    const textCommands = pageLines
+      .map(
+        (line, index) =>
+          `1 0 0 1 54 ${pageHeight - 72 - index * 14} Tm (${escapePdfText(line)}) Tj`,
+      )
+      .join("\n");
+    const content = `BT\n/F1 10 Tf\n14 TL\n${textCommands}\nET`;
+
+    return [
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontObjectNumber} 0 R >> >> /Contents ${contentObjectNumber} 0 R >>`,
+      `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+    ];
+  });
+  const pageRefs = pages
+    .map((_page, pageIndex) => `${pageObjectStart + pageIndex * 2} 0 R`)
+    .join(" ");
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
-    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    `<< /Type /Pages /Kids [${pageRefs}] /Count ${pages.length} >>`,
+    ...pageObjects,
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
-    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
   ];
   let pdf = "%PDF-1.4\n";
   const offsets = [0];
@@ -93,6 +110,16 @@ function createSimplePdf(text: string) {
   pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
 
   return new TextEncoder().encode(pdf);
+}
+
+function chunk<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+
+  return chunks;
 }
 
 function normalizePdfText(text: string) {

@@ -72,7 +72,7 @@ working demo MVP slice:
   `npm run lint`, and `npm run vercel-build`.
 
 Remaining MVP work is mostly hardening: production auth provider integration,
-form validation depth, richer tests, audit logs, workflow status controls, and
+form validation depth, richer tests, audit logs, approval workflows, and
 deployment environment setup.
 
 ## Phase 1: Project Foundation
@@ -201,8 +201,8 @@ Status: partially complete for demo mode.
 - Completed: Add coordinator task creation and assignment UI.
 - Completed: Persist need and task create/update operations in Prisma-backed
   mode.
-- Remaining: Add task status update UI for responders.
-- Remaining: Add need verification UI for coordinators.
+- Completed: Add task status update UI for responders.
+- Completed: Add need verification UI for coordinators.
 - Remaining: Add validation depth and role-aware UI states.
 
 ### Exit Criteria
