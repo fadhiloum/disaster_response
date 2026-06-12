@@ -57,8 +57,7 @@ working demo MVP slice:
 - The current OpenAI integration is deliberately scoped to generating editable
   situation report and concept-note drafts from existing program data. It does
   not yet power map analysis, task prioritization, chat, resource matching,
-  program creation, donor-ready report variants, or generalized document
-  generation.
+  program creation, or generalized document generation.
 - Reviewed AI SitRep drafts can now be saved through
   `POST /api/incidents/:id/sitreps` and persisted through the shared data
   repository.
@@ -67,13 +66,61 @@ working demo MVP slice:
   handlers.
 - The deployment workspace now includes resource create and update forms wired
   to the resource API routes.
-- SitReps can be exported as text or PDF through the SitRep export endpoint.
+- SitReps can be exported as operational, donor, or executive text/PDF variants
+  through the SitRep export endpoint.
 - Local verification commands are available through `npm run test`,
   `npm run lint`, and `npm run vercel-build`.
 
 Remaining MVP work is mostly hardening: production auth provider integration,
-form validation depth, richer tests, approval workflows, map controls, and
+form validation depth, richer tests, approval workflows, role-aware UI, and
 deployment environment setup.
+
+## Pending Features By Priority
+
+### P0: Pilot Readiness
+
+- Replace demo cookie auth with a production auth provider such as NextAuth,
+  Supabase Auth, or the selected deployment identity provider.
+- Add route-level protection for private pages.
+- Hide or disable unavailable UI actions by role.
+- Harden validation across programs, needs, tasks, resources, partner
+  activities, and SitReps.
+- Add consistent error, empty, loading, and form feedback states.
+
+### P1: Core Workflow Polish
+
+- Add SitRep edit flow for previously saved records.
+- Finish remaining SitRep approval UX beyond the current status and review
+  foundation.
+- Add audit-friendly timestamps and created-by fields to any remaining non-core
+  mutation paths.
+- Add deeper permission-check tests for API routes and repository adapters.
+
+### P2: QA And Field Usability
+
+- Add basic accessibility checks for forms, navigation, and map controls.
+- Review mobile layouts across dashboard, map, incident detail, deployment, and
+  SitRep workflows.
+- Improve role-aware UI states in needs, tasks, resources, and partner
+  workflows.
+
+### P3: Mapping And Data Scale
+
+- Add PostGIS-backed queries only when advanced geospatial filtering or
+  distance calculations are required.
+- Move to Leaflet if the map needs real pan/zoom, clustering, GeoJSON, or
+  tile-layer controls.
+- Reserve Mapbox for later production polish if pricing, token management, and
+  licensing requirements are acceptable.
+
+### P4: Expanded AI
+
+- Define privacy rules and allowed fields for each AI workflow.
+- Add schemas for map analysis, task prioritization, resource matching, program
+  creation, and operational chat.
+- Add per-user AI rate limits and request logging.
+- Add review, approval, and audit states before AI output can update records.
+- Add mocked OpenAI tests for each new AI route.
 
 ## Phase 1: Project Foundation
 
@@ -323,14 +370,15 @@ Status: partially complete, with AI drafting implemented.
 - Completed: Add Vitest coverage for the AI SitRep draft and SitRep save routes.
 - Completed: Add Vitest coverage for PDF SitRep export.
 - Remaining: Add SitRep edit flow for previously saved records.
-- Remaining: Add approval workflow and audit trail.
+- Remaining: Finish approval workflow UX beyond the current status, review, and
+  audit trail foundation.
 
 ### Exit Criteria
 
 - Coordinators can create SitReps for programs.
 - Coordinators can generate editable AI SitRep drafts from program data and
   recent web context.
-- SitReps can be exported as text or PDF.
+- SitReps can be exported as operational, donor, or executive text/PDF variants.
 - Report content reflects current program data.
 
 ## Phase 8: Admin and Hardening
@@ -388,8 +436,8 @@ Status: future scope.
   address verified needs.
 - Program creation: draft program records from responder notes or intake text
   while requiring human review before saving.
-- Report export: generate executive summaries or donor-ready variants from
-  reviewed SitRep content.
+- Report export: generate AI-assisted executive summaries or donor-ready
+  narrative variants beyond the current reviewed static export variants.
 - Document generation: draft briefings and partner updates from approved
   program data.
 
@@ -424,7 +472,7 @@ Status: future scope.
 
 1. Mostly complete: Local app, schema, demo data, and layout are working.
 2. Partially complete: Cookie auth and mutation role checks exist; production
-   auth provider, page protection, and audit logs remain.
+   auth provider, page protection, and role-aware page UI remain.
 3. Partially complete: Program pages, route handlers, and durable Prisma writes
    exist; validation needs hardening.
 4. Partially complete: Needs and task data is visible with route handlers and
@@ -434,7 +482,8 @@ Status: future scope.
    validation needs hardening.
 6. Mostly complete: Dashboard and map provide a useful demo operating picture.
 7. Partially complete: SitReps can be listed, manually created, generated from
-   AI drafts, and exported as text or PDF; edit and approval workflows remain.
+   AI drafts, and exported as operational, donor, or executive text/PDF
+   variants; edit and approval UX remain.
 8. Started: Admin view and AI route tests exist; broader tests, permissions,
    accessibility, and mobile polish remain.
 
@@ -454,9 +503,9 @@ Status: future scope.
 - OpenAI data handling: review prompt payloads against privacy policy before
   production use.
 - Expanded AI scope: map analysis, task prioritization, chat, resource matching,
-  program creation, donor-ready report variants, and generalized document
-  generation should remain future scope until auth, audit logging, rate limits,
-  and approval workflows are in place.
+  program creation, AI-generated report variants beyond the current static
+  exports, and generalized document generation should remain future scope until
+  auth, audit logging, rate limits, and approval workflows are in place.
 
 ## Suggested First Build Slice
 
