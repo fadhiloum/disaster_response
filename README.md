@@ -77,4 +77,5 @@ drafting. The key is used only in server routes and must not be exposed to the
 browser.
 
 See `docs/OpenAI-Integration.md` for endpoint behavior, local checks, payload
-details, and production guardrails.
+details, and production guardrails. See `docs/SitRep-Drafting.md` for the
+feature workflow and SitRep-specific test steps.

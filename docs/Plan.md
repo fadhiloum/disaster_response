@@ -25,7 +25,36 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 - File storage: S3-compatible storage or Supabase Storage
 - Deployment: Vercel plus managed PostgreSQL
 
+## Current Progress
+
+As of the current codebase, the app has moved beyond initial scaffolding into a
+working demo MVP slice:
+
+- App shell, navigation, dashboard, incident pages, resource view, map view,
+  deployment workspace, SitRep view, and admin view are implemented.
+- API route handlers exist for incidents, needs, tasks, resources, partner
+  activities, SitReps, auth placeholders, current user, concept-note export, and
+  AI SitRep drafting.
+- Data access is centralized behind `app/lib/data` with `demo`, `prisma`, and
+  reserved `drizzle` backend modes selected by `DATA_BACKEND`.
+- Prisma schema and initial migration exist for PostgreSQL-oriented
+  persistence.
+- OpenAI SitRep drafting is implemented through the Responses API and covered by
+  mocked Vitest route tests.
+- The current OpenAI integration is deliberately scoped to generating editable
+  situation report drafts from existing incident data. It does not yet power map
+  analysis, task prioritization, chat, resource matching, incident creation,
+  report export, or document generation.
+- Local verification commands are available through `npm run test`,
+  `npm run lint`, and `npm run vercel-build`.
+
+Remaining MVP work is mostly hardening: real authentication, role enforcement,
+production persistence writes, form validation depth, richer tests, and
+deployment environment setup.
+
 ## Phase 1: Project Foundation
+
+Status: mostly complete.
 
 ### Goals
 
@@ -35,12 +64,15 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ### Work Items
 
-- Scaffold Next.js with TypeScript and Tailwind CSS.
-- Add Prisma and configure PostgreSQL connection.
-- Define base models: User, Organization, Incident, NeedReport, Resource, Task, PartnerActivity, SituationReport.
-- Add seed data for demo incidents, users, resources, tasks, and partner activities.
-- Create shared UI primitives for forms, tables, badges, status labels, filters, and page headers.
-- Add environment configuration documentation.
+- Completed: Scaffold Next.js-compatible Vinext app with TypeScript and
+  Tailwind CSS.
+- Completed: Add Prisma schema and initial migration for PostgreSQL.
+- Completed: Define base models for users, organizations, incidents, needs,
+  resources, tasks, partner activities, teams, and SitReps.
+- Completed: Add realistic in-repo demo data for local development.
+- Completed: Create shared app shell and reusable UI primitives.
+- Completed: Add environment documentation in `.env.example` and README.
+- Remaining: Add production-grade Prisma seed data and seed command.
 
 ### Exit Criteria
 
@@ -50,6 +82,8 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 - Core layout and navigation are in place.
 
 ## Phase 2: Authentication and Roles
+
+Status: placeholder only.
 
 ### Goals
 
@@ -67,11 +101,12 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ### Work Items
 
-- Implement authentication.
-- Add current-user API endpoint.
-- Add role checks for API mutations.
-- Add route-level protection for private pages.
-- Add UI affordances that hide or disable unavailable actions.
+- Completed: Add placeholder login, logout, and current-user API routes.
+- Completed: Add admin view showing demo users, roles, and organizations.
+- Remaining: Implement real authentication provider.
+- Remaining: Add role checks for API mutations.
+- Remaining: Add route-level protection for private pages.
+- Remaining: Hide or disable unavailable actions by role.
 
 ### Exit Criteria
 
@@ -81,15 +116,17 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ## Phase 3: Incident Management
 
+Status: partially complete for demo mode.
+
 ### Goals
 
 - Make incidents the central organizing object for response activity.
 
 ### Work Items
 
-- Build `/incidents` list page with filtering by status, severity, and disaster type.
-- Build `/incidents/new` create form.
-- Build `/incidents/[id]` detail page with tabs:
+- Completed: Build `/incidents` list page with filtering workspace.
+- Completed: Build `/incidents/new` create form.
+- Completed: Build `/incidents/[id]` detail page with sections for:
   - Overview
   - Map
   - Needs
@@ -97,13 +134,16 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
   - Resources
   - Partners
   - Situation Reports
-- Implement incident API endpoints:
+- Completed: Implement incident API route handlers:
   - `GET /api/incidents`
   - `POST /api/incidents`
   - `GET /api/incidents/:id`
   - `PATCH /api/incidents/:id`
   - `DELETE /api/incidents/:id`
-- Add validation for required fields, status, severity, disaster type, and coordinates.
+- Completed: Add `/incidents/[id]/edit` page.
+- Remaining: Persist create/update/delete operations in Prisma-backed mode.
+- Remaining: Add stricter validation for required fields, status, severity,
+  disaster type, and coordinates.
 
 ### Exit Criteria
 
@@ -113,24 +153,26 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ## Phase 4: Needs and Task Coordination
 
+Status: partially complete for demo mode.
+
 ### Goals
 
 - Support field reporting and operational follow-through.
 
 ### Work Items
 
-- Build need report form for responders.
-- Build needs table with category, urgency, status, location, quantity, and affected people.
-- Add need status workflow: reported, verified, assigned, fulfilled, closed.
-- Build task creation and assignment flow.
-- Add task board or task table with priority, assignee, due time, and status.
-- Implement API endpoints:
+- Completed: Show incident needs and task tables in incident detail.
+- Completed: Implement route handlers:
   - `GET /api/incidents/:id/needs`
   - `POST /api/incidents/:id/needs`
   - `PATCH /api/needs/:id`
   - `GET /api/incidents/:id/tasks`
   - `POST /api/incidents/:id/tasks`
   - `PATCH /api/tasks/:id`
+- Remaining: Add responder-facing need submission UI.
+- Remaining: Add coordinator task creation and assignment UI.
+- Remaining: Persist status workflow changes in Prisma-backed mode.
+- Remaining: Add validation and role checks.
 
 ### Exit Criteria
 
@@ -140,18 +182,17 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ## Phase 5: Resources and Partner 3W
 
+Status: partially complete for demo mode.
+
 ### Goals
 
 - Track logistics and partner response coverage.
 
 ### Work Items
 
-- Build `/resources` inventory page.
-- Add resource creation and update forms.
-- Track quantity available, quantity committed, warehouse, expiry date, and assigned incident.
-- Add resource commitment action.
-- Build partner activity tab using 3W format: who, what, where.
-- Implement API endpoints:
+- Completed: Build `/resources` inventory page.
+- Completed: Show incident resources and partner 3W activity in incident detail.
+- Completed: Implement route handlers:
   - `GET /api/resources`
   - `POST /api/resources`
   - `PATCH /api/resources/:id`
@@ -159,6 +200,11 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
   - `GET /api/incidents/:id/activities`
   - `POST /api/incidents/:id/activities`
   - `PATCH /api/activities/:id`
+- Completed: Add deployment workspace for teams, incidents, and resources.
+- Remaining: Add full resource creation and update forms.
+- Remaining: Persist resource commitments and partner activity changes in
+  Prisma-backed mode.
+- Remaining: Add validation, role checks, and stock conflict handling.
 
 ### Exit Criteria
 
@@ -168,22 +214,28 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ## Phase 6: Dashboard and Map
 
+Status: mostly complete for demo mode.
+
 ### Goals
 
 - Provide a common operating picture.
 
 ### Work Items
 
-- Build `/dashboard` with:
+- Completed: Build `/dashboard` and home dashboard with:
   - Active incidents
   - Severity mix
   - Open urgent needs
   - Resource gaps
   - Open tasks
   - Latest situation updates
-- Build `/map` full-screen operational map.
-- Add map layers for incidents, needs, shelters or warehouses, teams, and partner activities.
-- Add filters for incident, type, urgency, status, and organization.
+- Completed: Build `/map` operational map view.
+- Completed: Add map data for incidents, needs, resources, teams, and partner
+  activities.
+- Remaining: Add richer map layer controls and filters by incident, type,
+  urgency, status, and organization.
+- Remaining: Evaluate Leaflet or Mapbox if the current map needs more advanced
+  geospatial interaction.
 
 ### Exit Criteria
 
@@ -193,6 +245,8 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ## Phase 7: Situation Reports
 
+Status: partially complete, with AI drafting implemented.
+
 ### Goals
 
 - Generate concise reports from incident data.
@@ -200,24 +254,30 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ### Work Items
 
-- Build `/sitreps` list page.
-- Build situation report tab in incident detail.
-- Add create/edit flow for SitRep sections:
+- Completed: Build `/sitreps` list page.
+- Completed: Build Situation Reports section in incident detail.
+- Remaining: Add create/edit flow for SitRep sections:
   - Summary
   - Current impact
   - Priority needs
   - Response actions
   - Gaps
   - Next operational period priorities
-- Add text export first.
-- Add PDF export after report layout is stable.
-- Add AI-assisted draft generation from incident, needs, task, resource, team,
-  partner, and previous report context.
-- Implement API endpoints:
+- Completed: Add text export endpoint.
+- Remaining: Add PDF export after report layout is stable.
+- Completed: Add AI-assisted draft generation from incident, needs, task,
+  resource, team, partner, and previous report context.
+- Completed: Implement route handlers:
   - `GET /api/incidents/:id/sitreps`
   - `POST /api/incidents/:id/sitreps`
   - `GET /api/sitreps/:id/export`
   - `POST /api/ai/incidents/:id/situation-report`
+- Completed: Add focused docs in `docs/OpenAI-Integration.md` and
+  `docs/SitRep-Drafting.md`.
+- Completed: Add Vitest coverage for the AI SitRep draft route.
+- Remaining: Persist reviewed AI drafts into official SitRep records.
+- Remaining: Add PDF export.
+- Remaining: Add approval workflow and audit trail.
 
 ### Exit Criteria
 
@@ -228,24 +288,77 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ## Phase 8: Admin and Hardening
 
+Status: started.
+
 ### Goals
 
 - Make the MVP safer, clearer, and ready for demo or pilot use.
 
 ### Work Items
 
-- Build `/admin` for users, roles, and organizations.
-- Add audit-friendly timestamps and created-by fields to key records.
-- Add error states, empty states, loading states, and form validation feedback.
-- Add tests for high-risk API routes and permission checks.
-- Add basic accessibility checks for forms, navigation, and map controls.
-- Review mobile layouts.
+- Completed: Build `/admin` for demo users, roles, and organizations.
+- Completed: Add initial Vitest setup and route tests for OpenAI SitRep
+  drafting.
+- Completed: Add contributor guide in `AGENTS.md`.
+- Remaining: Add audit-friendly timestamps and created-by fields consistently
+  across mutation paths.
+- Remaining: Add error states, empty states, loading states, and form validation
+  feedback across all workflows.
+- Remaining: Add tests for high-risk API routes, repository adapters, and
+  permission checks.
+- Remaining: Add basic accessibility checks for forms, navigation, and map
+  controls.
+- Remaining: Review mobile layouts.
 
 ### Exit Criteria
 
 - Admins can manage users and organizations.
 - Core workflows have test coverage.
 - App handles empty, loading, and error states gracefully.
+
+## Phase 9: Expanded OpenAI Workflows
+
+Status: future scope.
+
+### Goals
+
+- Extend OpenAI support beyond SitRep drafting only after auth, role checks,
+  audit logging, and data governance are in place.
+- Keep generated output reviewable by coordinators before it changes official
+  operational records.
+
+### Candidate Use Cases
+
+- Map analysis: summarize clusters, coverage gaps, access constraints, and
+  high-priority locations from incident map layers.
+- Task prioritization: rank open tasks using urgency, affected population,
+  deadlines, dependencies, and available teams.
+- Operational chat: answer coordinator questions from incident data with clear
+  references to source records.
+- Resource matching: suggest inventory, teams, or partner activities that can
+  address verified needs.
+- Incident creation: draft incident records from responder notes or intake text
+  while requiring human review before saving.
+- Report export: generate executive summaries or donor-ready variants from
+  reviewed SitRep content.
+- Document generation: draft concept notes, briefings, and partner updates from
+  approved incident data.
+
+### Work Items
+
+- Remaining: Define privacy rules and allowed data fields for each AI workflow.
+- Remaining: Add prompt and output schemas per workflow.
+- Remaining: Add per-user rate limits and request logging.
+- Remaining: Add review, approval, and audit states before AI output updates
+  official records.
+- Remaining: Add tests that mock OpenAI for each AI route.
+
+### Exit Criteria
+
+- Each AI workflow has a documented purpose, prompt payload, review path, and
+  rollback behavior.
+- No AI-generated output becomes operational record data without human approval.
+- Sensitive data is excluded unless explicitly approved by policy.
 
 ## Initial Data Model Checklist
 
@@ -260,14 +373,19 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 
 ## MVP Milestones
 
-1. Local app, database, schema, seed data, and layout are working.
-2. Authentication and role-based access are working.
-3. Incident CRUD and incident detail tabs are working.
-4. Needs and task workflows are working.
-5. Resources and partner 3W workflows are working.
-6. Dashboard and map provide a useful operating picture.
-7. Situation reports can be generated and exported.
-8. Admin tools, tests, and mobile polish are complete.
+1. Mostly complete: Local app, schema, demo data, and layout are working.
+2. Not complete: Real authentication and role-based access are still pending.
+3. Partially complete: Incident pages and route handlers exist; durable Prisma
+   writes and validation need hardening.
+4. Partially complete: Needs and task data is visible with route handlers;
+   full workflow UI and persistence need hardening.
+5. Partially complete: Resources and partner 3W are visible with route
+   handlers; creation, validation, and durable writes need hardening.
+6. Mostly complete: Dashboard and map provide a useful demo operating picture.
+7. Partially complete: SitReps can be listed and exported as text; AI drafts can
+   be generated; PDF export and approval workflow remain.
+8. Started: Admin view and AI route tests exist; broader tests, permissions,
+   accessibility, and mobile polish remain.
 
 ## Risks and Open Decisions
 
@@ -281,6 +399,10 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
   reviewed by an accountable coordinator.
 - OpenAI data handling: review prompt payloads against privacy policy before
   production use.
+- Expanded AI scope: map analysis, task prioritization, chat, resource matching,
+  incident creation, report export, and document generation should remain future
+  scope until auth, audit logging, rate limits, and approval workflows are in
+  place.
 
 ## Suggested First Build Slice
 
