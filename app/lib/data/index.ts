@@ -73,6 +73,15 @@ export const data: DataRepository = {
   async getIncident(id) {
     return (await getRepository()).getIncident(id);
   },
+  async createIncident(input) {
+    return (await getRepository()).createIncident(input);
+  },
+  async updateIncident(id, input) {
+    return (await getRepository()).updateIncident(id, input);
+  },
+  async deleteIncident(id) {
+    return (await getRepository()).deleteIncident(id);
+  },
   async listNeeds() {
     return (await getRepository()).listNeeds();
   },

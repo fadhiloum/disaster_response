@@ -18,7 +18,96 @@ import {
   tasks,
   users,
 } from "@/app/lib/demo-data";
-import type { DataRepository } from "./repository";
+import type {
+  CreateIncidentInput,
+  DataRepository,
+  UpdateIncidentInput,
+} from "./repository";
+
+function mapIncidentInput(input: CreateIncidentInput) {
+  return {
+    title: input.title,
+    disasterType: input.disasterType,
+    severity: input.severity,
+    status: input.status,
+    region: input.region,
+    country: input.country,
+    state: input.state,
+    locationName: input.locationName,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    affectedPeople: 0,
+    openNeeds: 0,
+    resourceGaps: 0,
+    assignedTeams: 0,
+    startTime: input.startTime,
+    description: input.description,
+    lead: input.lead ?? currentUser.name,
+    latestUpdate: input.latestUpdate ?? input.description,
+    budgetCurrency: input.budgetCurrency,
+    masterBudgetAmount: input.masterBudgetAmount,
+    subPrograms:
+      input.subPrograms?.map((subProgram) => ({
+        id: subProgram.id ?? crypto.randomUUID(),
+        name: subProgram.name,
+        budgetAllocated: subProgram.budgetAllocated,
+      })) ?? [],
+    fundRequests:
+      input.fundRequests?.map((request) => ({
+        id: request.id ?? crypto.randomUUID(),
+        subProgramName: request.subProgramName,
+        requestedByTeam: request.requestedByTeam,
+        amount: request.amount,
+        currency: request.currency ?? input.budgetCurrency,
+        purpose: request.purpose,
+        status: request.status ?? "draft",
+        requestedAt: request.requestedAt ?? new Date().toISOString(),
+      })) ?? [],
+  };
+}
+
+function applyIncidentUpdate(
+  incident: (typeof incidents)[number],
+  input: UpdateIncidentInput,
+) {
+  if (input.title !== undefined) incident.title = input.title;
+  if (input.disasterType !== undefined) incident.disasterType = input.disasterType;
+  if (input.severity !== undefined) incident.severity = input.severity;
+  if (input.status !== undefined) incident.status = input.status;
+  if (input.region !== undefined) incident.region = input.region;
+  if (input.country !== undefined) incident.country = input.country;
+  if (input.state !== undefined) incident.state = input.state;
+  if (input.locationName !== undefined) incident.locationName = input.locationName;
+  if (input.latitude !== undefined) incident.latitude = input.latitude;
+  if (input.longitude !== undefined) incident.longitude = input.longitude;
+  if (input.startTime !== undefined) incident.startTime = input.startTime;
+  if (input.description !== undefined) incident.description = input.description;
+  if (input.lead !== undefined) incident.lead = input.lead;
+  if (input.latestUpdate !== undefined) incident.latestUpdate = input.latestUpdate;
+  if (input.budgetCurrency !== undefined) incident.budgetCurrency = input.budgetCurrency;
+  if (input.masterBudgetAmount !== undefined) {
+    incident.masterBudgetAmount = input.masterBudgetAmount;
+  }
+  if (input.subPrograms !== undefined) {
+    incident.subPrograms = input.subPrograms.map((subProgram) => ({
+      id: subProgram.id ?? crypto.randomUUID(),
+      name: subProgram.name,
+      budgetAllocated: subProgram.budgetAllocated,
+    }));
+  }
+  if (input.fundRequests !== undefined) {
+    incident.fundRequests = input.fundRequests.map((request) => ({
+      id: request.id ?? crypto.randomUUID(),
+      subProgramName: request.subProgramName,
+      requestedByTeam: request.requestedByTeam,
+      amount: request.amount,
+      currency: request.currency ?? incident.budgetCurrency,
+      purpose: request.purpose,
+      status: request.status ?? "draft",
+      requestedAt: request.requestedAt ?? new Date().toISOString(),
+    }));
+  }
+}
 
 export const demoRepository: DataRepository = {
   backend: "demo",
@@ -33,6 +122,38 @@ export const demoRepository: DataRepository = {
   },
   async getIncident(id) {
     return getIncident(id);
+  },
+  async createIncident(input) {
+    const incident = {
+      id: crypto.randomUUID(),
+      ...mapIncidentInput(input),
+    };
+
+    incidents.unshift(incident);
+
+    return incident;
+  },
+  async updateIncident(id, input) {
+    const incident = getIncident(id);
+
+    if (!incident) {
+      return undefined;
+    }
+
+    applyIncidentUpdate(incident, input);
+
+    return incident;
+  },
+  async deleteIncident(id) {
+    const index = incidents.findIndex((incident) => incident.id === id);
+
+    if (index === -1) {
+      return false;
+    }
+
+    incidents.splice(index, 1);
+
+    return true;
   },
   async listNeeds() {
     return needReports;
