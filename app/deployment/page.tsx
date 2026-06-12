@@ -2,6 +2,8 @@ import { AppShell } from "@/app/components/app-shell";
 import { data } from "@/app/lib/data";
 import { DeploymentWorkspace } from "./deployment-workspace";
 
+export const dynamic = "force-dynamic";
+
 export default async function DeploymentPage() {
   const [deployedTeams, incidents, resources] = await Promise.all([
     data.listDeployedTeams(),

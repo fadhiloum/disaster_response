@@ -3,6 +3,8 @@ import { AppShell } from "@/app/components/app-shell";
 import { CommandLink, SectionHeader } from "@/app/components/ui";
 import { data } from "@/app/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function SitRepsPage() {
   const [incidents, situationReports] = await Promise.all([
     data.listIncidents(),
