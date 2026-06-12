@@ -3,6 +3,8 @@ import { CommandLink } from "@/app/components/ui";
 import { data } from "@/app/lib/data";
 import { IncidentsWorkspace } from "./incidents-workspace";
 
+export const dynamic = "force-dynamic";
+
 export default async function IncidentsPage() {
   const incidents = await data.listIncidents();
 

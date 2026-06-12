@@ -112,6 +112,18 @@ export const data: DataRepository = {
   async createSituationReport(input) {
     return (await getRepository()).createSituationReport(input);
   },
+  async getIncidentConceptNote(id) {
+    return (await getRepository()).getIncidentConceptNote(id);
+  },
+  async getIncidentConceptNotes(id) {
+    return (await getRepository()).getIncidentConceptNotes(id);
+  },
+  async getConceptNote(id) {
+    return (await getRepository()).getConceptNote(id);
+  },
+  async createIncidentConceptNoteVersion(input) {
+    return (await getRepository()).createIncidentConceptNoteVersion(input);
+  },
   async getDashboardSummary() {
     return (await getRepository()).getDashboardSummary();
   },
@@ -119,6 +131,7 @@ export const data: DataRepository = {
 
 export type { DataBackend, DataRepository } from "./repository";
 export type {
+  ConceptNote,
   DeployedTeam,
   FundRequest,
   FundRequestStatus,

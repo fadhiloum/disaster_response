@@ -6,6 +6,7 @@ import {
   data,
   type NeedReport,
 } from "@/app/lib/data";
+import { isAuthResponse, requireRole } from "@/app/lib/auth";
 
 const docxContentType =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -16,6 +17,7 @@ export async function GET(
 ) {
   const { id } = await params;
   const incident = await data.getIncident(id);
+  const requestUrl = new URL(request.url);
 
   if (!incident) {
     return new Response("Incident not found", { status: 404 });
@@ -36,6 +38,14 @@ export async function GET(
   const activities = await data.getIncidentActivities(incident.id);
   const assignedResources = await data.getIncidentResources(incident.id);
   const teams = await data.getIncidentTeams(incident.id);
+  const requestedNoteId = requestUrl.searchParams.get("conceptNoteId");
+  const requestedNote = requestedNoteId
+    ? await data.getConceptNote(requestedNoteId)
+    : undefined;
+  const savedNote =
+    requestedNote?.incidentId === incident.id
+      ? requestedNote
+      : await data.getIncidentConceptNote(incident.id);
 
   const location = [
     incident.locationName,
@@ -88,7 +98,7 @@ export async function GET(
         .join("; ")
     : "No fund requests recorded.";
 
-  const replacements: Record<string, string[]> = {
+  const baseReplacements: Record<string, string[]> = {
     "Document Reference": [
       `CN-${incident.id.toUpperCase()}-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}`,
     ],
@@ -134,6 +144,9 @@ export async function GET(
     ],
     "Possible Collaborating Partners": [partnerText],
   };
+  const replacements = savedNote
+    ? conceptNoteReplacements(savedNote.content, baseReplacements)
+    : baseReplacements;
 
   const updatedDocumentXml = Object.entries(replacements).reduce(
     (xml, [label, value]) => replaceValueCell(xml, label, value),
@@ -153,6 +166,46 @@ export async function GET(
       "content-type": docxContentType,
     },
   });
+}
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const auth = await requireRole(["Admin", "Coordinator"]);
+
+  if (isAuthResponse(auth)) {
+    return auth;
+  }
+
+  const { id } = await params;
+
+  if (!(await data.getIncident(id))) {
+    return Response.json({ error: "Incident not found" }, { status: 404 });
+  }
+
+  const payload = await request.json();
+  const content =
+    typeof payload === "object" &&
+    payload !== null &&
+    typeof (payload as Record<string, unknown>).content === "string"
+      ? (payload as Record<string, string>).content.trim()
+      : "";
+
+  if (!content) {
+    return Response.json(
+      { error: "Concept note content is required." },
+      { status: 400 },
+    );
+  }
+
+  const note = await data.createIncidentConceptNoteVersion({
+    incidentId: id,
+    content,
+    updatedBy: auth.user.name,
+  });
+
+  return Response.json({ data: note, mode: data.backend }, { status: 200 });
 }
 
 function sectorSummary(
@@ -181,6 +234,119 @@ function replaceValueCell(xml: string, label: string, paragraphs: string[]) {
 
     return row.replace(cells[1], replacementCell);
   });
+}
+
+const conceptSectionLabels: Array<{
+  key: string;
+  labels: readonly string[];
+  templateLabel: string;
+}> = [
+  {
+    key: "projectName",
+    labels: ["project name", "project title"],
+    templateLabel: "Project Name",
+  },
+  { key: "background", labels: ["background"], templateLabel: "Background" },
+  {
+    key: "targetedCommunity",
+    labels: ["targeted community", "target community"],
+    templateLabel: "Targeted Community",
+  },
+  { key: "rationale", labels: ["rationale"], templateLabel: "Rationale" },
+  { key: "objectives", labels: ["objectives"], templateLabel: "Objectives" },
+  {
+    key: "projectOutputs",
+    labels: ["project outputs", "outputs"],
+    templateLabel: "Project Outputs",
+  },
+  { key: "timeline", labels: ["timeline"], templateLabel: "Timeline" },
+  {
+    key: "constraints",
+    labels: ["constraints and risks", "constraints", "risks"],
+    templateLabel: "Constraints",
+  },
+  {
+    key: "budget",
+    labels: ["budget assumptions", "budget"],
+    templateLabel: "Budget",
+  },
+  {
+    key: "partners",
+    labels: [
+      "possible collaborating partners",
+      "collaborating partners",
+      "partners",
+    ],
+    templateLabel: "Possible Collaborating Partners",
+  },
+];
+
+function conceptNoteReplacements(
+  content: string,
+  baseReplacements: Record<string, string[]>,
+) {
+  const replacements = { ...baseReplacements };
+  const sections = parseConceptNoteSections(content);
+  let matchedSection = false;
+
+  for (const section of conceptSectionLabels) {
+    const value = sections[section.key];
+
+    if (value?.length) {
+      replacements[section.templateLabel] = value;
+      matchedSection = true;
+    }
+  }
+
+  if (!matchedSection) {
+    replacements.Background = splitParagraphs(content);
+  }
+
+  return replacements;
+}
+
+function parseConceptNoteSections(content: string) {
+  const sections: Record<string, string[]> = {};
+  let currentKey: string | null = null;
+
+  for (const line of content.split("\n")) {
+    const key = conceptHeadingKey(line);
+
+    if (key) {
+      currentKey = key;
+      sections[currentKey] = [];
+      continue;
+    }
+
+    if (currentKey && line.trim()) {
+      sections[currentKey].push(line.trim().replace(/^[-*]\s+/, ""));
+    }
+  }
+
+  return sections;
+}
+
+function conceptHeadingKey(line: string) {
+  const normalized = line
+    .replace(/^#+\s*/, "")
+    .replace(/^\*\*/, "")
+    .replace(/\*\*$/, "")
+    .replace(/:$/, "")
+    .trim()
+    .toLowerCase();
+
+  return (
+    conceptSectionLabels.find((section) =>
+      section.labels.includes(normalized),
+    )?.key ?? null
+  );
+}
+
+function splitParagraphs(content: string) {
+  return content
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 }
 
 function replaceCellContent(cell: string, content: string) {

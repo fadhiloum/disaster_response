@@ -3,6 +3,8 @@ import { OpsMap } from "@/app/components/ops-map";
 import { SectionHeader, StatusBadge } from "@/app/components/ui";
 import { data, formatNumber } from "@/app/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function MapPage() {
   const incidents = await data.listIncidents();
 
