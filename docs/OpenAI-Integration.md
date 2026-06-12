@@ -13,9 +13,11 @@ Implemented flow:
 4. The route loads incident context through the shared data repository.
 5. The route calls the OpenAI Responses API.
 6. The response is returned as editable draft text.
+7. After review, the coordinator can save the draft as a SitRep through
+   `POST /api/incidents/[id]/sitreps`.
 
-The generated text is not saved automatically. A coordinator should review and
-edit it before using it operationally.
+The generated text is not saved automatically. A coordinator must review and
+save the draft before it becomes a SitRep record.
 
 ## Environment Variables
 
@@ -53,6 +55,7 @@ Rules:
   - Client component that calls the route.
   - Shows loading and error states.
   - Displays the generated draft in an editable textarea.
+  - Saves reviewed drafts through the SitRep POST route.
 
 - `app/incidents/[id]/page.tsx`
   - Renders the AI drafting panel inside the Situation Reports section.

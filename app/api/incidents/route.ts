@@ -1,4 +1,5 @@
 import { data } from "@/app/lib/data";
+import { isAuthResponse, requireRole } from "@/app/lib/auth";
 
 export async function GET() {
   const incidents = await data.listIncidents();
@@ -7,6 +8,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireRole(["Admin", "Coordinator"]);
+
+  if (isAuthResponse(auth)) {
+    return auth;
+  }
+
   const payload = await request.json();
 
   return Response.json(

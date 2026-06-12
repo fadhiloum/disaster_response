@@ -4,11 +4,18 @@ import {
   hasOpenAIKey,
   openaiModel,
 } from "@/app/lib/ai/openai";
+import { isAuthResponse, requireRole } from "@/app/lib/auth";
 
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const auth = await requireRole(["Admin", "Coordinator"]);
+
+  if (isAuthResponse(auth)) {
+    return auth;
+  }
+
   if (!hasOpenAIKey()) {
     return Response.json(
       { error: "OPENAI_API_KEY is not configured." },
