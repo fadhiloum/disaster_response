@@ -282,7 +282,34 @@ describe("SitRep route", () => {
     expect(response.headers.get("content-type")).toBe("application/pdf");
     expect(response.headers.get("content-disposition")).toContain("sitrep-new.pdf");
     expect(body).toContain("%PDF-1.4");
+    expect(body).toContain("Operational Situation Report");
     expect(body).toContain("Riverside Flood Response");
+    expect(body).toContain("Status: Draft");
+    expect(body).toContain("Page 1 of");
+  });
+
+  it("exports donor SitRep variants with donor-oriented sections", async () => {
+    vi.doMock("@/app/lib/data", () => ({
+      data: {
+        getIncident: vi.fn(async () => incident),
+        listSituationReports: vi.fn(async () => [savedReport]),
+      },
+    }));
+    const { GET } = await loadExportRoute();
+
+    const response = await GET(
+      new Request("http://localhost/api/sitreps/sitrep-new/export?variant=donor"),
+      { params: Promise.resolve({ id: savedReport.id }) },
+    );
+    const body = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-disposition")).toContain(
+      "sitrep-new-donor.txt",
+    );
+    expect(body).toContain("Donor Brief: Riverside Flood Response");
+    expect(body).toContain("Priority Needs For Support");
+    expect(body).toContain("Funding-Relevant Gaps");
   });
 
   it("keeps long SitRep PDF exports across multiple pages", async () => {

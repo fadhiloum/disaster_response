@@ -512,6 +512,12 @@ export default async function IncidentDetailPage({
                       >
                         PDF
                       </Link>
+                      <Link
+                        className="text-[#244a9b]"
+                        href={`/api/sitreps/${sitrep.id}/export?format=pdf&variant=donor`}
+                      >
+                        Donor PDF
+                      </Link>
                     </div>
                   </div>
                   <div className="mt-3 grid gap-2 text-xs font-semibold text-zinc-500 md:grid-cols-3">
