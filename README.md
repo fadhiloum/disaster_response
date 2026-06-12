@@ -74,8 +74,7 @@ npm run prisma:seed
 
 Next persistence tasks:
 
-- Fill any remaining DTO fields that are currently derived/defaulted by the
-  Prisma adapter.
+- Persist create, update, and delete program operations in Prisma-backed mode.
 - Implement the Drizzle/D1 adapter tables if Cloudflare D1 becomes a target.
 - Add server-side role checks to mutation routes.
 
