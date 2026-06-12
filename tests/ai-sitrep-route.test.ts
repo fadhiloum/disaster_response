@@ -208,4 +208,73 @@ describe("AI situation report route", () => {
       error: "OpenAI request timed out. Please try again.",
     });
   });
+
+  it("returns 504 when OpenAI wraps an aborted timeout as a connection error", async () => {
+    mockDataRepository();
+    mockOpenAI({
+      hasKey: true,
+      error: Object.assign(new Error("Connection error."), {
+        cause: Object.assign(new Error("The operation was aborted."), {
+          name: "AbortError",
+        }),
+        name: "APIConnectionError",
+      }),
+    });
+    mockAuth();
+    const { POST } = await loadRoute();
+
+    const response = await POST(new Request("http://localhost"), {
+      params: Promise.resolve({ id: incident.id }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(504);
+    expect(payload).toEqual({
+      error: "OpenAI request timed out. Please try again.",
+    });
+  });
+
+  it("returns 503 when OpenAI rejects the configured model", async () => {
+    mockDataRepository();
+    mockOpenAI({
+      hasKey: true,
+      error: Object.assign(new Error("The model does not exist."), {
+        status: 404,
+      }),
+    });
+    mockAuth();
+    const { POST } = await loadRoute();
+
+    const response = await POST(new Request("http://localhost"), {
+      params: Promise.resolve({ id: incident.id }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(payload).toEqual({
+      error: "OpenAI model configuration is not valid for SitRep drafting.",
+    });
+  });
+
+  it("returns 429 when OpenAI rate limits or quota blocks the request", async () => {
+    mockDataRepository();
+    mockOpenAI({
+      hasKey: true,
+      error: Object.assign(new Error("Rate limit reached."), {
+        status: 429,
+      }),
+    });
+    mockAuth();
+    const { POST } = await loadRoute();
+
+    const response = await POST(new Request("http://localhost"), {
+      params: Promise.resolve({ id: incident.id }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(429);
+    expect(payload).toEqual({
+      error: "OpenAI rate limit or quota exceeded. Please try again later.",
+    });
+  });
 });

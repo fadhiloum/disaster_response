@@ -14,10 +14,69 @@ function isTimeoutError(error: unknown) {
     return false;
   }
 
+  const cause = error.cause;
+  const causeText =
+    cause instanceof Error
+      ? `${cause.name} ${cause.message}`
+      : typeof cause === "string"
+        ? cause
+        : "";
+
   return (
     error.name.includes("Timeout") ||
     error.name === "AbortError" ||
-    error.message.toLowerCase().includes("timeout")
+    error.message.toLowerCase().includes("timeout") ||
+    error.message.toLowerCase().includes("timed out") ||
+    causeText.toLowerCase().includes("timeout") ||
+    causeText.toLowerCase().includes("timed out") ||
+    causeText.toLowerCase().includes("abort")
+  );
+}
+
+function openAIErrorStatus(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return undefined;
+  }
+
+  const { status } = error as { status?: unknown };
+
+  return typeof status === "number" ? status : undefined;
+}
+
+function openAIErrorResponse(error: unknown) {
+  const status = openAIErrorStatus(error);
+
+  if (status === 401 || status === 403) {
+    return Response.json(
+      { error: "OpenAI credentials are not authorized for SitRep drafting." },
+      { status: 503 },
+    );
+  }
+
+  if (status === 400 || status === 404) {
+    return Response.json(
+      { error: "OpenAI model configuration is not valid for SitRep drafting." },
+      { status: 503 },
+    );
+  }
+
+  if (status === 429) {
+    return Response.json(
+      { error: "OpenAI rate limit or quota exceeded. Please try again later." },
+      { status: 429 },
+    );
+  }
+
+  if (status && status >= 500) {
+    return Response.json(
+      { error: "OpenAI service is unavailable. Please try again." },
+      { status: 503 },
+    );
+  }
+
+  return Response.json(
+    { error: "Unable to generate SitRep draft. Please try again." },
+    { status: 503 },
   );
 }
 
@@ -63,6 +122,7 @@ export async function POST(
         model: openaiModel,
         instructions:
           "You draft concise humanitarian situation reports. Use only the supplied incident facts. If a value is unknown, say it is to be confirmed. Keep the tone operational, neutral, and suitable for responders.",
+        max_output_tokens: 900,
         input: [
           "Draft a situation report with these headings:",
           "Summary",
@@ -112,7 +172,7 @@ export async function POST(
         maxRetries: 0,
         timeout: Number.isFinite(openaiRequestTimeoutMs)
           ? openaiRequestTimeoutMs
-          : 8000,
+          : 30000,
       },
     );
   } catch (error) {
@@ -123,10 +183,7 @@ export async function POST(
       );
     }
 
-    return Response.json(
-      { error: "Unable to generate SitRep draft." },
-      { status: 502 },
-    );
+    return openAIErrorResponse(error);
   }
 
   return Response.json({

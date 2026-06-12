@@ -1,8 +1,11 @@
 import OpenAI from "openai";
 
+const defaultOpenAIRequestTimeoutMs = 30000;
+
 export const openaiModel = process.env.OPENAI_MODEL ?? "gpt-5.5";
 export const openaiRequestTimeoutMs = Number.parseInt(
-  process.env.OPENAI_REQUEST_TIMEOUT_MS ?? "8000",
+  process.env.OPENAI_REQUEST_TIMEOUT_MS ??
+    defaultOpenAIRequestTimeoutMs.toString(),
   10,
 );
 
@@ -20,6 +23,6 @@ export function getOpenAIClient() {
     maxRetries: 0,
     timeout: Number.isFinite(openaiRequestTimeoutMs)
       ? openaiRequestTimeoutMs
-      : 8000,
+      : defaultOpenAIRequestTimeoutMs,
   });
 }

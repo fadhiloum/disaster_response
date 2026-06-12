@@ -27,6 +27,7 @@ production.
 ```env
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-5.5
+OPENAI_REQUEST_TIMEOUT_MS=30000
 ```
 
 Rules:
@@ -34,6 +35,8 @@ Rules:
 - `OPENAI_API_KEY` must stay server-side only.
 - Do not prefix the key with `NEXT_PUBLIC_`.
 - `OPENAI_MODEL` is optional. If it is not set, the app uses `gpt-5.5`.
+- `OPENAI_REQUEST_TIMEOUT_MS` is optional. If it is not set, the app waits up to
+  30 seconds for a SitRep draft.
 - The app can still build without `OPENAI_API_KEY`; the endpoint returns a
   clear `503` if the key is missing at runtime.
 
@@ -82,6 +85,7 @@ Error responses:
 
 - `404` when the incident does not exist.
 - `503` when `OPENAI_API_KEY` is not configured.
+- `504` when the OpenAI request times out.
 
 ## Local Checks
 
