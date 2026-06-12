@@ -41,9 +41,8 @@ export default async function SitRepsPage() {
                 const incident = incidentsById.get(report.incidentId);
 
                 return (
-                  <Link
-                    className="block rounded-lg border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
-                    href={`/api/sitreps/${report.id}/export`}
+                  <article
+                    className="rounded-lg border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
                     key={report.id}
                   >
                     <p className="font-semibold text-zinc-950">
@@ -55,7 +54,13 @@ export default async function SitRepsPage() {
                     <p className="mt-3 text-sm leading-6 text-zinc-600">
                       {report.summary}
                     </p>
-                  </Link>
+                    <div className="mt-4 flex gap-3 text-sm font-semibold text-[#244a9b]">
+                      <Link href={`/api/sitreps/${report.id}/export`}>TXT</Link>
+                      <Link href={`/api/sitreps/${report.id}/export?format=pdf`}>
+                        PDF
+                      </Link>
+                    </div>
+                  </article>
                 );
               })}
             </div>

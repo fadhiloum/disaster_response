@@ -59,6 +59,10 @@ async function loadRoute() {
   return import("@/app/api/incidents/[id]/sitreps/route");
 }
 
+async function loadExportRoute() {
+  return import("@/app/api/sitreps/[id]/export/route");
+}
+
 describe("SitRep route", () => {
   afterEach(() => {
     vi.resetModules();
@@ -154,5 +158,27 @@ describe("SitRep route", () => {
     expect(payload).toEqual({ error: "Authentication required" });
     expect(data.getIncident).not.toHaveBeenCalled();
     expect(data.createSituationReport).not.toHaveBeenCalled();
+  });
+
+  it("exports a SitRep as PDF when requested", async () => {
+    vi.doMock("@/app/lib/data", () => ({
+      data: {
+        getIncident: vi.fn(async () => incident),
+        listSituationReports: vi.fn(async () => [savedReport]),
+      },
+    }));
+    const { GET } = await loadExportRoute();
+
+    const response = await GET(
+      new Request("http://localhost/api/sitreps/sitrep-new/export?format=pdf"),
+      { params: Promise.resolve({ id: savedReport.id }) },
+    );
+    const body = new TextDecoder().decode(await response.arrayBuffer());
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toBe("application/pdf");
+    expect(response.headers.get("content-disposition")).toContain("sitrep-new.pdf");
+    expect(body).toContain("%PDF-1.4");
+    expect(body).toContain("Riverside Flood Response");
   });
 });

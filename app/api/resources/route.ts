@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     {
       data: {
         id: crypto.randomUUID(),
+        assignedIncidentId: null,
         quantityCommitted: 0,
         ...payload,
       },
