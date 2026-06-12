@@ -9,6 +9,50 @@ import { isAuthResponse, requireRole } from "@/app/lib/auth";
 
 export const runtime = "nodejs";
 
+type WebSource = {
+  title: string;
+  url: string;
+};
+
+type ResponseOutputTextLike = {
+  annotations?: Array<{
+    title?: string;
+    type?: string;
+    url?: string;
+  }>;
+  text?: string;
+  type?: string;
+};
+
+type ResponseOutputMessageLike = {
+  content?: ResponseOutputTextLike[];
+  type?: string;
+};
+
+type ResponseWebSearchCallLike = {
+  action?: {
+    sources?: Array<{
+      url?: string;
+    }>;
+  };
+  type?: string;
+};
+
+type ResponseWithSources = {
+  output?: Array<ResponseOutputMessageLike | ResponseWebSearchCallLike>;
+  output_text: string;
+};
+
+const countryCodes: Record<string, string> = {
+  Bangladesh: "BD",
+  Malaysia: "MY",
+  Philippines: "PH",
+};
+
+function countryCode(country: string) {
+  return countryCodes[country];
+}
+
 function isTimeoutError(error: unknown) {
   if (!(error instanceof Error)) {
     return false;
@@ -80,6 +124,36 @@ function openAIErrorResponse(error: unknown) {
   );
 }
 
+function extractWebSources(response: ResponseWithSources): WebSource[] {
+  const sources = new Map<string, WebSource>();
+
+  for (const item of response.output ?? []) {
+    if (item.type === "web_search_call") {
+      for (const source of (item as ResponseWebSearchCallLike).action?.sources ??
+        []) {
+        if (source.url) {
+          sources.set(source.url, { title: source.url, url: source.url });
+        }
+      }
+    }
+
+    if (item.type === "message") {
+      for (const content of (item as ResponseOutputMessageLike).content ?? []) {
+        for (const annotation of content.annotations ?? []) {
+          if (annotation.type === "url_citation" && annotation.url) {
+            sources.set(annotation.url, {
+              title: annotation.title || annotation.url,
+              url: annotation.url,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return Array.from(sources.values());
+}
+
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -113,16 +187,18 @@ export async function POST(
       data.getIncidentActivities(incident.id),
       data.getIncidentSitreps(incident.id),
     ]);
+  const generatedAt = new Date().toISOString();
 
-  let response;
+  let response: ResponseWithSources;
 
   try {
     response = await getOpenAIClient().responses.create(
       {
+        include: ["web_search_call.action.sources"],
         model: openaiModel,
         instructions:
-          "You draft concise humanitarian situation reports. Use only the supplied program facts. If a value is unknown, say it is to be confirmed. Keep the tone operational, neutral, and suitable for responders.",
-        max_output_tokens: 900,
+          "You draft concise humanitarian situation reports for emergency responders. Use supplied program facts as the internal operating picture. Use web search for recent external context from local disaster management authorities, government agencies, other NGOs, IFRC/Red Cross/Crescent, OCHA/ReliefWeb, UN agencies, or reputable local media. Do not invent values. Clearly flag unverified external context and cite web-sourced claims inline.",
+        max_output_tokens: 1100,
         input: [
           "Draft a situation report with these headings:",
           "Summary",
@@ -131,6 +207,10 @@ export async function POST(
           "Response actions",
           "Gaps",
           "Next operational period priorities",
+          "",
+          "Before drafting, search the web for the latest relevant external updates about this disaster/program location and disaster type. Prioritize official local disaster management authorities, government sources, other NGOs, IFRC/Red Cross/Crescent, OCHA/ReliefWeb, UN agencies, and reputable local media. Use only recent external information that is directly relevant to this program. Cite external claims inline.",
+          "",
+          `Draft generated at: ${generatedAt}`,
           "",
           "Program context:",
           JSON.stringify(
@@ -181,6 +261,18 @@ export async function POST(
             2,
           ),
         ].join("\n"),
+        tool_choice: "required",
+        tools: [
+          {
+            search_context_size: "low",
+            type: "web_search",
+            user_location: {
+              country: countryCode(incident.country),
+              region: incident.state,
+              type: "approximate",
+            },
+          },
+        ],
       },
       {
         maxRetries: 0,
@@ -205,6 +297,7 @@ export async function POST(
       draft: response.output_text,
       incidentId: incident.id,
       model: openaiModel,
+      sources: extractWebSources(response),
     },
   });
 }
