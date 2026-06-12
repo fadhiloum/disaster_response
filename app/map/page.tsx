@@ -15,7 +15,7 @@ export default async function MapPage() {
             Operational Map
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600">
-            World map view of incident locations for quick global awareness.
+            World map view of program locations for quick global awareness.
           </p>
         </header>
 
@@ -23,7 +23,7 @@ export default async function MapPage() {
           <aside className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
             <SectionHeader title="Map scope" />
             <div className="mt-4 grid gap-3">
-              <MapSummary label="Incidents" value={incidents.length.toString()} />
+              <MapSummary label="Programs" value={incidents.length.toString()} />
               <MapSummary
                 label="Countries"
                 value={new Set(incidents.map((incident) => incident.country)).size.toString()}
@@ -40,7 +40,7 @@ export default async function MapPage() {
             </div>
 
             <div className="mt-6">
-              <SectionHeader title="Incident status" />
+              <SectionHeader title="Program status" />
               <div className="mt-4 space-y-2">
                 {incidents.map((incident) => (
                   <div className="rounded-md border border-zinc-200 p-3" key={incident.id}>

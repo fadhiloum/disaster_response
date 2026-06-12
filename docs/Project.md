@@ -2,11 +2,11 @@
 
 ## Goal
 
-Build a web app that helps emergency responders coordinate incidents, needs, resources, volunteers, shelters, and situation reports in real time.
+Build a web app that helps emergency responders coordinate programs, needs, resources, volunteers, shelters, budgets, and situation reports in real time.
 
 ## Target Users
 
-* Incident Commander / Coordinator
+* Program Coordinator
 * Field Responder
 * NGO / Partner Organization
 * Volunteer Manager
@@ -16,11 +16,11 @@ Build a web app that helps emergency responders coordinate incidents, needs, res
 
 ## Core MVP Features
 
-### 1. Incident Dashboard
+### 1. Program Dashboard
 
 Show a common operating picture:
 
-* Active incidents
+* Active programs
 * Severity level
 * Location map
 * Affected population estimate
@@ -29,9 +29,9 @@ Show a common operating picture:
 * Resource gaps
 * Latest situation updates
 
-### 2. Incident Management
+### 2. Program Management
 
-Users can create and manage incidents with:
+Users can create and manage programs with:
 
 * Title
 * Disaster type: flood, earthquake, landslide, fire, storm, conflict, other
@@ -42,6 +42,12 @@ Users can create and manage incidents with:
 * Description
 * Attachments/photos
 * Geo-coordinates
+* Master budget currency and amount
+* Sub-program budget allocations, such as WASH, temporary shelter, food packs, and dignity packs
+* Fund requests to deployment teams, constrained so requested funds remain within the master budget
+
+The master budget is the program-level financial control. Fund requests sit one
+layer below it and represent smaller controlled releases to deployment teams.
 
 ### 3. Needs Assessment
 
@@ -76,7 +82,7 @@ Track available and requested resources:
 * Quantity committed
 * Warehouse/location
 * Expiry date, if relevant
-* Assigned incident
+* Assigned program
 * Movement history
 
 ### 5. Task Assignment
@@ -84,7 +90,7 @@ Track available and requested resources:
 Coordinators can assign tasks to responders:
 
 * Task title
-* Incident
+* Program
 * Location
 * Assignee
 * Priority
@@ -106,7 +112,7 @@ Track “Who does What Where”:
 
 ### 7. Situation Reports
 
-Generate simple SitReps from incident data:
+Generate simple SitReps from program data:
 
 * Summary
 * Current impact
@@ -116,13 +122,13 @@ Generate simple SitReps from incident data:
 * Next operational period priorities
 
 The current implementation also supports AI-assisted SitRep drafting. Drafts are
-generated from incident context and must be reviewed before use.
+generated from program context and must be reviewed before use.
 
 ### 8. Map View
 
 Display:
 
-* Incident points
+* Program points
 * Needs reports
 * Shelters
 * Warehouses
@@ -134,7 +140,7 @@ Display:
 Roles:
 
 * Admin: full access
-* Coordinator: manage incidents, tasks, resources, reports
+* Coordinator: manage programs, tasks, resources, reports
 * Responder: create updates, needs, task status
 * Partner: update own 3W activities
 * Viewer: read-only dashboard
@@ -169,7 +175,11 @@ Roles:
 * phone
 * address
 
-### Incident
+### Program
+
+The current implementation still uses the technical name `Incident` in code and
+route paths. Product-facing UI and documentation should refer to this object as
+Program until a full route/model rename is scheduled.
 
 * id
 * title
@@ -181,14 +191,38 @@ Roles:
 * longitude
 * location_name
 * start_time
+* budget_currency
+* master_budget_amount
 * created_by
 * created_at
 * updated_at
 
+### ProgramSubProgram
+
+* id
+* program_id
+* name
+* budget_allocated
+* created_at
+
+### FundRequest
+
+* id
+* program_id
+* sub_program_name
+* requested_by_team
+* amount
+* currency
+* purpose
+* status: draft, requested, approved, released
+* requested_at
+* approved_at
+* released_at
+
 ### NeedReport
 
 * id
-* incident_id
+* program_id
 * category
 * urgency
 * quantity
@@ -217,7 +251,7 @@ Roles:
 ### Task
 
 * id
-* incident_id
+* program_id
 * title
 * description
 * assignee_id
@@ -233,7 +267,7 @@ Roles:
 
 * id
 * organization_id
-* incident_id
+* program_id
 * sector
 * activity
 * location_name
@@ -248,7 +282,7 @@ Roles:
 ### SituationReport
 
 * id
-* incident_id
+* program_id
 * reporting_period_start
 * reporting_period_end
 * summary
@@ -268,7 +302,9 @@ Roles:
 * POST /api/auth/logout
 * GET /api/me
 
-### Incidents
+### Programs
+
+Current route paths are still `/api/incidents` for compatibility.
 
 * GET /api/incidents
 * POST /api/incidents
@@ -312,25 +348,26 @@ Roles:
 
 ### /dashboard
 
-Overview of active incidents, needs, gaps, and tasks.
+Overview of active programs, needs, gaps, budgets, and tasks.
 
 ### /incidents
 
-List and filter incidents.
+List and filter programs.
 
 ### /incidents/new
 
-Create incident form.
+Create program form with master budget, sub-program allocation, and initial fund request fields.
 
 ### /incidents/[id]
 
-Incident detail page with tabs:
+Program detail page with tabs:
 
 * Overview
 * Map
 * Needs
 * Tasks
-* Resources
+* Deployment
+* Budget control
 * Partners
 * Situation Reports
 
@@ -353,13 +390,13 @@ User, role, and organization management.
 ## MVP Acceptance Criteria
 
 * Users can log in with role-based permissions.
-* Coordinators can create and update incidents.
+* Coordinators can create and update programs.
 * Responders can submit needs with map locations.
 * Coordinators can assign tasks and update task status.
-* Resources can be tracked and committed to incidents.
+* Resources can be tracked and committed to programs.
 * Partner activities can be recorded using 3W format.
-* Dashboard shows active incidents, urgent needs, and open tasks.
-* Map displays incidents, needs, resources, and activities.
+* Dashboard shows active programs, urgent needs, budgets, and open tasks.
+* Map displays programs, needs, resources, and activities.
 * SitRep can be generated and exported as text or PDF.
 * App is usable on mobile and desktop.
 
@@ -378,4 +415,4 @@ User, role, and organization management.
 
 ## Build Instructions for Codex
 
-Create a full-stack disaster response coordination app using Next.js, TypeScript, Tailwind CSS, PostgreSQL, and Prisma. Implement authentication, role-based access, CRUD for incidents, needs, tasks, resources, partner activities, map visualization, and situation report generation. Prioritize clean UI, mobile responsiveness, data validation, and clear separation between frontend components, API routes, and database models.
+Create a full-stack disaster response coordination app using Next.js, TypeScript, Tailwind CSS, PostgreSQL, and Prisma. Implement authentication, role-based access, CRUD for programs, needs, tasks, resources, partner activities, map visualization, budget controls, fund requests, and situation report generation. Prioritize clean UI, mobile responsiveness, data validation, and clear separation between frontend components, API routes, and database models.

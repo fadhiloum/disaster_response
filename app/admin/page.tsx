@@ -84,7 +84,7 @@ export default async function AdminPage() {
           <SectionHeader title="Role Permissions" />
           <div className="mt-4 grid gap-3 md:grid-cols-5">
             <Permission title="Admin" value="Full platform access" />
-            <Permission title="Coordinator" value="Incidents, tasks, resources, reports" />
+            <Permission title="Coordinator" value="Programs, tasks, resources, reports" />
             <Permission title="Responder" value="Needs, updates, task status" />
             <Permission title="Partner" value="Own 3W activities" />
             <Permission title="Viewer" value="Read-only dashboard" />

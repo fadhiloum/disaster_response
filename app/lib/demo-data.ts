@@ -13,6 +13,25 @@ export type TaskStatus = "todo" | "in progress" | "blocked" | "done";
 
 export type Severity = "low" | "moderate" | "high" | "critical";
 
+export type ProgramSubProgram = {
+  id: string;
+  name: string;
+  budgetAllocated: number;
+};
+
+export type FundRequestStatus = "draft" | "requested" | "approved" | "released";
+
+export type FundRequest = {
+  id: string;
+  subProgramName: string;
+  requestedByTeam: string;
+  amount: number;
+  currency: string;
+  purpose: string;
+  status: FundRequestStatus;
+  requestedAt: string;
+};
+
 export type Incident = {
   id: string;
   title: string;
@@ -33,6 +52,10 @@ export type Incident = {
   description: string;
   lead: string;
   latestUpdate: string;
+  budgetCurrency: string;
+  masterBudgetAmount: number;
+  subPrograms: ProgramSubProgram[];
+  fundRequests: FundRequest[];
 };
 
 export type NeedReport = {
@@ -185,6 +208,53 @@ export const incidents: Incident[] = [
     lead: "Maya Chen",
     latestUpdate:
       "Evacuation boats reached Zone C. Potable water remains the largest gap for shelters east of the river.",
+    budgetCurrency: "MYR",
+    masterBudgetAmount: 750000,
+    subPrograms: [
+      { id: "sub-riverside-wash", name: "WASH", budgetAllocated: 210000 },
+      {
+        id: "sub-riverside-shelter",
+        name: "Temporary Shelter",
+        budgetAllocated: 180000,
+      },
+      {
+        id: "sub-riverside-food",
+        name: "Food Packs",
+        budgetAllocated: 160000,
+      },
+      {
+        id: "sub-riverside-dignity",
+        name: "Dignity Packs",
+        budgetAllocated: 95000,
+      },
+      {
+        id: "sub-riverside-logistics",
+        name: "Logistics",
+        budgetAllocated: 105000,
+      },
+    ],
+    fundRequests: [
+      {
+        id: "fund-riverside-wash-001",
+        subProgramName: "WASH",
+        requestedByTeam: "Field Team North",
+        amount: 120000,
+        currency: "MYR",
+        purpose: "Water trucking, storage bladders, and hygiene stations for Zone C shelters.",
+        status: "approved",
+        requestedAt: "2026-06-10T09:30:00+07:00",
+      },
+      {
+        id: "fund-riverside-shelter-001",
+        subProgramName: "Temporary Shelter",
+        requestedByTeam: "Shelter Coordination Cell",
+        amount: 85000,
+        currency: "MYR",
+        purpose: "Temporary shelter kits and mat distribution for displaced households.",
+        status: "requested",
+        requestedAt: "2026-06-11T08:15:00+07:00",
+      },
+    ],
   },
   {
     id: "landslide-hill-ward",
@@ -208,6 +278,33 @@ export const incidents: Incident[] = [
     lead: "Nadia Okafor",
     latestUpdate:
       "Engineering team marked two unsafe structures. Debris clearance is waiting on heavy equipment.",
+    budgetCurrency: "MYR",
+    masterBudgetAmount: 320000,
+    subPrograms: [
+      {
+        id: "sub-hill-shelter",
+        name: "Temporary Shelter",
+        budgetAllocated: 120000,
+      },
+      { id: "sub-hill-wash", name: "WASH", budgetAllocated: 70000 },
+      {
+        id: "sub-hill-logistics",
+        name: "Logistics",
+        budgetAllocated: 130000,
+      },
+    ],
+    fundRequests: [
+      {
+        id: "fund-hill-logistics-001",
+        subProgramName: "Logistics",
+        requestedByTeam: "Engineering Safety Cell",
+        amount: 60000,
+        currency: "MYR",
+        purpose: "Loader rental, fuel, and debris clearance support.",
+        status: "approved",
+        requestedAt: "2026-06-10T11:40:00+07:00",
+      },
+    ],
   },
   {
     id: "warehouse-fire-eastport",
@@ -231,6 +328,29 @@ export const incidents: Incident[] = [
     lead: "Maya Chen",
     latestUpdate:
       "Air quality monitoring is ongoing. Clinic team reports increased respiratory complaints.",
+    budgetCurrency: "MYR",
+    masterBudgetAmount: 180000,
+    subPrograms: [
+      { id: "sub-eastport-health", name: "Health", budgetAllocated: 90000 },
+      { id: "sub-eastport-wash", name: "WASH", budgetAllocated: 45000 },
+      {
+        id: "sub-eastport-food",
+        name: "Food Packs",
+        budgetAllocated: 45000,
+      },
+    ],
+    fundRequests: [
+      {
+        id: "fund-eastport-health-001",
+        subProgramName: "Health",
+        requestedByTeam: "Community Health Screeners",
+        amount: 40000,
+        currency: "MYR",
+        purpose: "Respiratory screening supplies and clinic extension hours.",
+        status: "released",
+        requestedAt: "2026-06-11T07:45:00+07:00",
+      },
+    ],
   },
 ];
 
@@ -539,6 +659,14 @@ export function formatDateTime(value: string) {
 
 export function formatNumber(value: number) {
   return new Intl.NumberFormat("en").format(value);
+}
+
+export function formatCurrency(value: number, currency = "MYR") {
+  return new Intl.NumberFormat("en", {
+    currency,
+    maximumFractionDigits: 0,
+    style: "currency",
+  }).format(value);
 }
 
 export const dashboardSummary = {

@@ -1,10 +1,13 @@
 export type {
   DeployedTeam,
+  FundRequest,
+  FundRequestStatus,
   Incident,
   IncidentStatus,
   NeedReport,
   NeedStatus,
   PartnerActivity,
+  ProgramSubProgram,
   Resource,
   ResponseTask,
   Role,
@@ -14,5 +17,5 @@ export type {
   User,
 } from "@/app/lib/demo-data";
 
-export { formatDateTime, formatNumber } from "@/app/lib/demo-data";
+export { formatCurrency, formatDateTime, formatNumber } from "@/app/lib/demo-data";
 

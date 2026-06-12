@@ -12,6 +12,7 @@ import {
 } from "@/app/components/ui";
 import {
   data,
+  formatCurrency,
   formatDateTime,
   formatNumber,
 } from "@/app/lib/data";
@@ -62,14 +63,22 @@ export default async function IncidentDetailPage({
     data.getIncidentTeams(incident.id),
     getSessionUser(),
   ]);
+  const totalFundRequested = incident.fundRequests.reduce(
+    (total, request) => total + request.amount,
+    0,
+  );
+  const remainingBudget = Math.max(
+    incident.masterBudgetAmount - totalFundRequested,
+    0,
+  );
 
   return (
-    <AppShell active="Incidents">
+    <AppShell active="Programs">
       <div className="space-y-6">
         <header className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <Link className="text-sm font-semibold text-[#244a9b]" href="/incidents">
-              Back to incidents
+              Back to programs
             </Link>
             <h1 className="mt-3 text-3xl font-semibold text-zinc-950">
               {incident.title}
@@ -113,6 +122,14 @@ export default async function IncidentDetailPage({
           <OverviewStat label="Open needs" value={incident.openNeeds.toString()} />
           <OverviewStat label="Assigned teams" value={incident.assignedTeams.toString()} />
           <OverviewStat label="Resource gaps" value={incident.resourceGaps.toString()} />
+          <OverviewStat
+            label="Master budget"
+            value={formatCurrency(incident.masterBudgetAmount, incident.budgetCurrency)}
+          />
+          <OverviewStat
+            label="Fund requested"
+            value={formatCurrency(totalFundRequested, incident.budgetCurrency)}
+          />
         </section>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
@@ -124,8 +141,93 @@ export default async function IncidentDetailPage({
             <Info label="Location" value={incident.locationName} />
             <Info label="Country / state" value={`${incident.country} / ${incident.state}`} />
             <Info label="Started" value={formatDateTime(incident.startTime)} />
-            <Info label="Incident lead" value={incident.lead} />
+            <Info label="Program lead" value={incident.lead} />
           </dl>
+        </section>
+
+        <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+          <SectionHeader title="Budget Control" />
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <BudgetMetric
+              label="Master budget"
+              value={formatCurrency(incident.masterBudgetAmount, incident.budgetCurrency)}
+            />
+            <BudgetMetric
+              label="Fund requested"
+              value={formatCurrency(totalFundRequested, incident.budgetCurrency)}
+            />
+            <BudgetMetric
+              label="Remaining control balance"
+              value={formatCurrency(remainingBudget, incident.budgetCurrency)}
+            />
+          </div>
+
+          <div className="mt-6 grid gap-6 xl:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold uppercase text-zinc-500">
+                Sub-program allocations
+              </h3>
+              <div className="mt-4 divide-y divide-zinc-200 rounded-md border border-zinc-200">
+                {incident.subPrograms.map((subProgram) => (
+                  <div
+                    className="flex flex-wrap items-center justify-between gap-3 p-4"
+                    key={subProgram.id}
+                  >
+                    <p className="font-semibold text-zinc-950">{subProgram.name}</p>
+                    <p className="text-sm font-semibold text-zinc-700">
+                      {formatCurrency(
+                        subProgram.budgetAllocated,
+                        incident.budgetCurrency,
+                      )}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold uppercase text-zinc-500">
+                Fund requests
+              </h3>
+              <div className="mt-4 space-y-3">
+                {incident.fundRequests.length ? (
+                  incident.fundRequests.map((request) => (
+                    <article
+                      className="rounded-md border border-zinc-200 p-4"
+                      key={request.id}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-zinc-950">
+                            {request.subProgramName}
+                          </p>
+                          <p className="mt-1 text-sm text-zinc-500">
+                            {request.requestedByTeam}
+                          </p>
+                        </div>
+                        <StatusBadge status={request.status} />
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-zinc-600">
+                        {request.purpose}
+                      </p>
+                      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
+                        <span className="font-semibold text-zinc-950">
+                          {formatCurrency(request.amount, request.currency)}
+                        </span>
+                        <span className="font-semibold text-zinc-500">
+                          {formatDateTime(request.requestedAt)}
+                        </span>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <p className="rounded-md border border-zinc-200 p-4 text-sm text-zinc-500">
+                    No fund requests have been created for this program.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </section>
 
         <div id="map">
@@ -213,7 +315,7 @@ export default async function IncidentDetailPage({
                   ))
                 ) : (
                   <p className="rounded-lg border border-zinc-200 p-4 text-sm text-zinc-500">
-                    No items have been deployed to this incident.
+                    No items have been deployed to this program.
                   </p>
                 )}
               </div>
@@ -241,7 +343,7 @@ export default async function IncidentDetailPage({
                   ))
                 ) : (
                   <p className="rounded-lg border border-zinc-200 p-4 text-sm text-zinc-500">
-                    No teams have been deployed to this incident.
+                    No teams have been deployed to this program.
                   </p>
                 )}
               </div>
@@ -307,7 +409,7 @@ export default async function IncidentDetailPage({
               ))
             ) : (
               <p className="text-sm text-zinc-500">
-                No situation reports have been generated for this incident.
+                No situation reports have been generated for this program.
               </p>
             )}
           </div>
@@ -323,6 +425,15 @@ function OverviewStat({ label, value }: { label: string; value: string }) {
       <p className="text-sm font-semibold text-zinc-500">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-zinc-950">{value}</p>
     </article>
+  );
+}
+
+function BudgetMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md bg-zinc-50 px-4 py-3">
+      <p className="text-sm font-semibold text-zinc-500">{label}</p>
+      <p className="mt-1 text-xl font-semibold text-zinc-950">{value}</p>
+    </div>
   );
 }
 

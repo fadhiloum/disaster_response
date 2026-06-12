@@ -52,12 +52,12 @@ export function DashboardHome({
               Disaster Response Dashboard
             </h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600">
-              Live coordination view for incidents, needs, resources, partners,
+              Live coordination view for programs, needs, resources, partners,
               teams, and situation reporting.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <CommandLink href="/incidents/new">Create incident</CommandLink>
+            <CommandLink href="/incidents/new">Create program</CommandLink>
             <CommandLink href="/map">Open map</CommandLink>
           </div>
         </header>
@@ -65,12 +65,12 @@ export function DashboardHome({
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <MetricCard
             detail="Currently monitored or active"
-            label="Incidents"
+            label="Programs"
             tone="red"
             value={dashboardSummary.activeIncidents.toString()}
           />
           <MetricCard
-            detail="Estimated across open incidents"
+            detail="Estimated across open programs"
             label="Affected people"
             tone="amber"
             value={formatNumber(dashboardSummary.affectedPeople)}
@@ -101,7 +101,7 @@ export function DashboardHome({
           <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
             <SectionHeader
               action={<Link className="text-sm font-semibold text-[#244a9b]" href="/incidents">View all</Link>}
-              title="Active Incidents"
+              title="Active Programs"
             />
             <div className="mt-4 space-y-3">
               {incidents.map((incident) => (

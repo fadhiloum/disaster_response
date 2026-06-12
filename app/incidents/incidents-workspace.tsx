@@ -9,6 +9,7 @@ import {
 } from "@/app/components/ui";
 import {
   formatDateTime,
+  formatCurrency,
   formatNumber,
   type Incident,
 } from "@/app/lib/data/types";
@@ -45,7 +46,7 @@ export function IncidentsWorkspace({
 
   async function deleteIncident(incident: Incident) {
     const confirmed = window.confirm(
-      `Delete "${incident.title}" from this incident list?`,
+      `Delete "${incident.title}" from this program list?`,
     );
 
     if (!confirmed) {
@@ -103,7 +104,7 @@ export function IncidentsWorkspace({
 
       <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 p-4">
-          <SectionHeader title="All incidents" />
+          <SectionHeader title="All programs" />
           <p className="text-sm font-semibold text-zinc-500">
             {visibleIncidents.length} of {incidents.length} shown
           </p>
@@ -113,9 +114,10 @@ export function IncidentsWorkspace({
           <table className="min-w-full divide-y divide-zinc-200 text-sm">
             <thead className="bg-zinc-50 text-left text-xs font-semibold uppercase text-zinc-500">
               <tr>
-                <th className="px-4 py-3">Incident</th>
+                <th className="px-4 py-3">Program</th>
                 <th className="px-4 py-3">Region</th>
                 <th className="px-4 py-3">Country / State</th>
+                <th className="px-4 py-3">Budget</th>
                 <th className="px-4 py-3">Severity</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Affected</th>
@@ -145,6 +147,14 @@ export function IncidentsWorkspace({
                       {incident.country}
                     </span>
                     <span className="mt-1 block">{incident.state}</span>
+                  </td>
+                  <td className="px-4 py-4">
+                    <p className="font-semibold text-zinc-800">
+                      {formatCurrency(incident.masterBudgetAmount, incident.budgetCurrency)}
+                    </p>
+                    <p className="mt-1 text-zinc-500">
+                      {formatCurrency(totalFundRequests(incident), incident.budgetCurrency)} requested
+                    </p>
                   </td>
                   <td className="px-4 py-4">
                     <SeverityBadge severity={incident.severity} />
@@ -189,7 +199,7 @@ export function IncidentsWorkspace({
 
         {!visibleIncidents.length ? (
           <div className="p-8 text-center text-sm text-zinc-500">
-            No incidents match the selected location filters.
+            No programs match the selected location filters.
           </div>
         ) : null}
       </section>
@@ -229,4 +239,8 @@ function FilterSelect({
 
 function uniqueValues(values: string[]) {
   return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
+}
+
+function totalFundRequests(incident: Incident) {
+  return incident.fundRequests.reduce((total, request) => total + request.amount, 0);
 }

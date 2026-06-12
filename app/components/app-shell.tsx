@@ -7,7 +7,7 @@ import { getSessionUser } from "@/app/lib/auth";
 
 const navigation = [
   { href: "/", icon: "dashboard", label: "Dashboard" },
-  { href: "/incidents", icon: "incident", label: "Incidents" },
+  { href: "/incidents", icon: "incident", label: "Programs" },
   { href: "/deployment", icon: "deployment", label: "Deployment" },
   { href: "/map", icon: "map", label: "Map" },
   { href: "/sitreps", icon: "report", label: "SitReps" },
@@ -75,7 +75,7 @@ export async function AppShell({
             <p className="text-sm font-semibold text-[#244a9b]">Current posture</p>
             <p className="mt-2 text-sm leading-6 text-zinc-700">
               Coordinating active response across flood, landslide, and fire
-              incidents with teams and FIFO inventory deployment.
+              programs with teams and FIFO inventory deployment.
             </p>
           </div>
         </aside>

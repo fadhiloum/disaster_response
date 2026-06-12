@@ -24,7 +24,7 @@ export default async function SitRepsPage() {
               Situation Reports
             </h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600">
-              Draft operational updates from incident data, response actions,
+              Draft operational updates from program data, response actions,
               gaps, and next priorities.
             </p>
           </div>
@@ -45,7 +45,7 @@ export default async function SitRepsPage() {
                     key={report.id}
                   >
                     <p className="font-semibold text-zinc-950">
-                      {incident?.title ?? "Unknown incident"}
+                      {incident?.title ?? "Unknown program"}
                     </p>
                     <p className="mt-1 text-sm text-zinc-500">
                       {report.reportingPeriod}

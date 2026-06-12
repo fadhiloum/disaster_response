@@ -1,4 +1,4 @@
-import { data, formatDateTime, formatNumber } from "@/app/lib/data";
+import { data, formatCurrency, formatDateTime, formatNumber } from "@/app/lib/data";
 import {
   getOpenAIClient,
   hasOpenAIKey,
@@ -121,7 +121,7 @@ export async function POST(
       {
         model: openaiModel,
         instructions:
-          "You draft concise humanitarian situation reports. Use only the supplied incident facts. If a value is unknown, say it is to be confirmed. Keep the tone operational, neutral, and suitable for responders.",
+          "You draft concise humanitarian situation reports. Use only the supplied program facts. If a value is unknown, say it is to be confirmed. Keep the tone operational, neutral, and suitable for responders.",
         max_output_tokens: 900,
         input: [
           "Draft a situation report with these headings:",
@@ -132,7 +132,7 @@ export async function POST(
           "Gaps",
           "Next operational period priorities",
           "",
-          "Incident context:",
+          "Program context:",
           JSON.stringify(
             {
               incident: {
@@ -151,6 +151,20 @@ export async function POST(
                 openNeeds: incident.openNeeds,
                 resourceGaps: incident.resourceGaps,
                 assignedTeams: incident.assignedTeams,
+                masterBudget: formatCurrency(
+                  incident.masterBudgetAmount,
+                  incident.budgetCurrency,
+                ),
+                fundRequests: incident.fundRequests.map((fundRequest) => ({
+                  subProgramName: fundRequest.subProgramName,
+                  requestedByTeam: fundRequest.requestedByTeam,
+                  amount: formatCurrency(
+                    fundRequest.amount,
+                    fundRequest.currency,
+                  ),
+                  status: fundRequest.status,
+                  purpose: fundRequest.purpose,
+                })),
                 started: formatDateTime(incident.startTime),
                 lead: incident.lead,
                 description: incident.description,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Icon, type IconName } from "@/app/components/icons";
-import { Badge, SectionHeader, StatusBadge } from "@/app/components/ui";
+import { SectionHeader, StatusBadge } from "@/app/components/ui";
 import {
   formatDateTime,
   formatNumber,
@@ -70,18 +70,6 @@ export function DeploymentWorkspace({
     [resources],
   );
 
-  const firstFreeByCategory = useMemo(() => {
-    const map = new Map<string, string>();
-
-    fifoResources.forEach((resource) => {
-      if (!map.has(resource.category) && freeQuantity(resource) > 0) {
-        map.set(resource.category, resource.id);
-      }
-    });
-
-    return map;
-  }, [fifoResources]);
-
   function confirmItemDeployment() {
     const chosenResources = fifoResources.filter((resource) => selected[resource.id]);
 
@@ -100,7 +88,7 @@ export function DeploymentWorkspace({
     });
 
     if (invalid) {
-      window.alert("Choose an incident and a valid quantity for each selected item.");
+      window.alert("Choose a program and a valid quantity for each selected item.");
       return;
     }
 
@@ -137,7 +125,7 @@ export function DeploymentWorkspace({
 
   function confirmTeamDeployment() {
     if (!teamForm.incidentId || !teamForm.name.trim()) {
-      window.alert("Add a team name and select an incident.");
+      window.alert("Add a team name and select a program.");
       return;
     }
 
@@ -178,7 +166,7 @@ export function DeploymentWorkspace({
       {activeTab === "items" ? (
         <section className="rounded-lg border border-zinc-200 bg-white shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 p-4">
-            <SectionHeader title="FIFO Item Deployment" />
+            <SectionHeader title="Item Deployment" />
             <button
               className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82]"
               onClick={confirmItemDeployment}
@@ -196,7 +184,7 @@ export function DeploymentWorkspace({
                   <th className="px-4 py-3">Item</th>
                   <th className="px-4 py-3">FIFO</th>
                   <th className="px-4 py-3">Stock</th>
-                  <th className="px-4 py-3">Incident</th>
+                  <th className="px-4 py-3">Program</th>
                   <th className="px-4 py-3">Quantity</th>
                 </tr>
               </thead>
@@ -228,11 +216,6 @@ export function DeploymentWorkspace({
                         <p className="mt-1 text-zinc-500">
                           {resource.category} - {resource.warehouseLocation}
                         </p>
-                        {firstFreeByCategory.get(resource.category) === resource.id ? (
-                          <span className="mt-2 inline-flex">
-                            <Badge tone="green">Next FIFO pick</Badge>
-                          </span>
-                        ) : null}
                       </td>
                       <td className="px-4 py-4 text-zinc-600">
                         <p className="font-semibold text-zinc-800">Queue #{index + 1}</p>
@@ -261,7 +244,7 @@ export function DeploymentWorkspace({
                           }
                           value={incidentByResource[resource.id] ?? ""}
                         >
-                          <option value="">Select incident</option>
+                          <option value="">Select program</option>
                           {incidents.map((incident) => (
                             <option key={incident.id} value={incident.id}>
                               {incident.title}
@@ -330,7 +313,7 @@ export function DeploymentWorkspace({
           <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
             <SectionHeader title="Deploy Team" />
             <div className="mt-5 space-y-4">
-              <Field label="Incident">
+              <Field label="Program">
                 <select
                   className="input"
                   onChange={(event) =>

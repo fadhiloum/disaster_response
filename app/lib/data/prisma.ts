@@ -38,6 +38,10 @@ type IncidentWithRelations = PrismaIncident & {
   needs: PrismaNeedReport[];
   tasks: PrismaTask[];
 };
+type IncidentBudgetFields = {
+  budgetCurrency?: string | null;
+  masterBudgetAmount?: { toNumber(): number } | number | null;
+};
 type NeedWithReporter = PrismaNeedReport & { reportedBy: PrismaUser };
 type TaskWithAssignee = PrismaTask & { assignee: PrismaUser | null };
 type ActivityWithOrg = PrismaPartnerActivity & { organization: Organization };
@@ -128,6 +132,7 @@ function mapIncident(incident: IncidentWithRelations): Incident {
     (total, need) => total + need.affectedPeople,
     0,
   );
+  const budgetFields = incident as IncidentWithRelations & IncidentBudgetFields;
 
   return {
     id: incident.id,
@@ -149,6 +154,10 @@ function mapIncident(incident: IncidentWithRelations): Incident {
     description: incident.description,
     lead: incident.createdBy.name,
     latestUpdate: incident.description,
+    budgetCurrency: budgetFields.budgetCurrency ?? "MYR",
+    masterBudgetAmount: toNumber(budgetFields.masterBudgetAmount ?? 0),
+    subPrograms: [],
+    fundRequests: [],
   };
 }
 

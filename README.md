@@ -1,15 +1,17 @@
 # Disaster Response Platform
 
-MVP web app for coordinating incidents, needs, resources, tasks, partners, maps,
+MVP web app for coordinating programs, needs, resources, tasks, partners, maps,
 and situation reports during emergency response operations.
 
 ## Current Build Slice
 
-- Dashboard with active incidents, affected population, urgent needs, open tasks,
+- Dashboard with active programs, affected population, urgent needs, open tasks,
   resource gaps, and map preview
-- Incident list, create form, and incident detail view
-- Incident detail sections for overview, map, needs, tasks, resources, partners,
-  and situation reports
+- Program list, create form, and program detail view
+- Program creation fields for master budget, sub-program allocations, and
+  initial fund requests
+- Program detail sections for overview, map, needs, tasks, deployment, budget,
+  partners, and situation reports
 - Resource inventory view
 - Full operational map view
 - SitRep list, preview, and text export endpoint
@@ -92,6 +94,6 @@ curl -i -X POST http://localhost:3000/api/auth/login \
   -d '{"email":"maya.chen@example.org"}'
 ```
 
-Mutation routes now require roles. Coordinators and admins can create incidents,
+Mutation routes now require roles. Coordinators and admins can create programs,
 tasks, resources, SitReps, and AI drafts. Responders can submit needs and update
 tasks. Partners can create and update partner activities.

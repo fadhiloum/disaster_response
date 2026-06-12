@@ -120,11 +120,14 @@ export const data: DataRepository = {
 export type { DataBackend, DataRepository } from "./repository";
 export type {
   DeployedTeam,
+  FundRequest,
+  FundRequestStatus,
   Incident,
   IncidentStatus,
   NeedReport,
   NeedStatus,
   PartnerActivity,
+  ProgramSubProgram,
   Resource,
   ResponseTask,
   Role,
@@ -133,4 +136,4 @@ export type {
   TaskStatus,
   User,
 } from "./types";
-export { formatDateTime, formatNumber } from "./types";
+export { formatCurrency, formatDateTime, formatNumber } from "./types";

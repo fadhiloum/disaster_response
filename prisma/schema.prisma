@@ -102,24 +102,52 @@ model Organization {
 }
 
 model Incident {
-  id                String            @id @default(cuid())
-  title             String
-  disasterType      DisasterType
-  severity          Severity
-  status            IncidentStatus    @default(MONITORING)
-  description       String
-  latitude          Decimal           @db.Decimal(9, 6)
-  longitude         Decimal           @db.Decimal(9, 6)
-  locationName      String
-  startTime         DateTime
-  createdById       String
-  createdBy         User              @relation("IncidentCreator", fields: [createdById], references: [id])
-  needs             NeedReport[]
-  tasks             Task[]
-  partnerActivities PartnerActivity[]
-  situationReports  SituationReport[]
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                 String              @id @default(cuid())
+  title              String
+  disasterType       DisasterType
+  severity           Severity
+  status             IncidentStatus      @default(MONITORING)
+  description        String
+  latitude           Decimal             @db.Decimal(9, 6)
+  longitude          Decimal             @db.Decimal(9, 6)
+  locationName       String
+  startTime          DateTime
+  budgetCurrency     String              @default("MYR")
+  masterBudgetAmount Decimal             @default(0) @db.Decimal(14, 2)
+  createdById        String
+  createdBy          User                @relation("IncidentCreator", fields: [createdById], references: [id])
+  subPrograms        ProgramSubProgram[]
+  fundRequests       FundRequest[]
+  needs              NeedReport[]
+  tasks              Task[]
+  partnerActivities  PartnerActivity[]
+  situationReports   SituationReport[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model ProgramSubProgram {
+  id              String   @id @default(cuid())
+  incidentId      String
+  incident        Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  name            String
+  budgetAllocated Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt       DateTime @default(now())
+}
+
+model FundRequest {
+  id              String    @id @default(cuid())
+  incidentId      String
+  incident        Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  subProgramName  String
+  requestedByTeam String
+  amount          Decimal   @db.Decimal(14, 2)
+  currency        String    @default("MYR")
+  purpose         String
+  status          String    @default("draft")
+  requestedAt     DateTime  @default(now())
+  approvedAt      DateTime?
+  releasedAt      DateTime?
 }
 
 model NeedReport {

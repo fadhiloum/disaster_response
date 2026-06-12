@@ -209,7 +209,7 @@ export function AiSitrepDraft({
             AI SitRep Draft
           </h3>
           <p className="mt-1 text-sm text-zinc-600">
-            Generate an editable operational draft from the current incident
+            Generate an editable operational draft from the current program
             data.
           </p>
         </div>

@@ -7,10 +7,10 @@ report drafting.
 
 Implemented flow:
 
-1. User opens an incident detail page.
+1. User opens a program detail page.
 2. User clicks `Draft with AI` in the Situation Reports section.
 3. The client calls `POST /api/ai/incidents/[id]/situation-report`.
-4. The route loads incident context through the shared data repository.
+4. The route loads program context through the shared data repository.
 5. The route calls the OpenAI Responses API.
 6. The response is returned as editable draft text.
 7. After review, the coordinator can save the draft as a SitRep through
@@ -49,8 +49,8 @@ Rules:
 
 - `app/api/ai/incidents/[id]/situation-report/route.ts`
   - Server-only route for SitRep drafting.
-  - Loads incident, needs, tasks, resources, teams, partner activities, and
-    previous reports.
+  - Loads program, needs, tasks, resources, teams, partner activities, budget
+    controls, and previous reports.
   - Sends a constrained operational prompt to the Responses API.
   - Returns `{ data: { draft, incidentId, model } }`.
 
@@ -83,7 +83,7 @@ Success response:
 
 Error responses:
 
-- `404` when the incident does not exist.
+- `404` when the program does not exist.
 - `503` when `OPENAI_API_KEY` is not configured.
 - `504` when the OpenAI request times out.
 
@@ -96,7 +96,7 @@ curl -s -X POST \
   http://localhost:3000/api/ai/incidents/flood-riverside/situation-report
 ```
 
-Verify unknown incident handling:
+Verify unknown program handling:
 
 ```bash
 curl -s -i -X POST \
@@ -113,14 +113,15 @@ npm run vercel-build
 
 ## Data Sent to OpenAI
 
-The current prompt includes operational incident context:
+The current prompt includes operational program context:
 
-- Incident title, type, severity, status, location, affected population, lead,
+- Program title, type, severity, status, location, affected population, lead,
   description, and latest update.
-- Needs reports for the incident.
-- Tasks for the incident.
+- Needs reports for the program.
+- Tasks for the program.
 - Assigned resources and deployed teams.
 - Partner 3W activities.
+- Master budget and current fund requests.
 - Up to two previous SitReps.
 
 Before production use, review this payload against the organization privacy
@@ -134,8 +135,8 @@ Treat AI output as a draft.
 Recommended production hardening:
 
 - Add authentication and role checks to the AI route.
-- Add per-user or per-incident rate limits.
-- Add request logging for timestamp, user, incident ID, and model, but avoid
+- Add per-user or per-program rate limits.
+- Add request logging for timestamp, user, program ID, and model, but avoid
   storing full prompts by default.
 - Add an approval workflow before saving generated SitReps.
 - Add prompt and output length limits.
@@ -146,8 +147,8 @@ Recommended production hardening:
 
 Useful next AI features:
 
-- Draft concept-note sections from incident data.
-- Summarize the latest incident changes.
+- Draft concept-note sections from program data.
+- Summarize the latest program changes.
 - Recommend priority actions from open needs, tasks, and inventory.
 - Match resource inventory to reported needs.
 - Flag duplicate or conflicting needs reports.

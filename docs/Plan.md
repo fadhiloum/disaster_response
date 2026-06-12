@@ -2,7 +2,7 @@
 
 ## Objective
 
-Build the MVP described in `Project.md`: a web app for coordinating disaster response incidents, needs, resources, tasks, partner activities, maps, and situation reports.
+Build the MVP described in `Project.md`: a web app for coordinating disaster response programs, needs, resources, tasks, partner activities, maps, budgets, and situation reports.
 
 ## Guiding Principles
 
@@ -30,9 +30,9 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 As of the current codebase, the app has moved beyond initial scaffolding into a
 working demo MVP slice:
 
-- App shell, navigation, dashboard, incident pages, resource view, map view,
+- App shell, navigation, dashboard, program pages, resource view, map view,
   deployment workspace, SitRep view, and admin view are implemented.
-- API route handlers exist for incidents, needs, tasks, resources, partner
+- API route handlers exist for programs, needs, tasks, resources, partner
   activities, SitReps, auth placeholders, current user, concept-note export, and
   AI SitRep drafting.
 - Auth now has an HTTP-only cookie session backed by repository users, with
@@ -41,11 +41,13 @@ working demo MVP slice:
   reserved `drizzle` backend modes selected by `DATA_BACKEND`.
 - Prisma schema and initial migration exist for PostgreSQL-oriented
   persistence.
+- Program records now include master budget controls, sub-program allocations,
+  and fund requests that must remain within the master budget.
 - OpenAI SitRep drafting is implemented through the Responses API and covered by
   mocked Vitest route tests.
 - The current OpenAI integration is deliberately scoped to generating editable
-  situation report drafts from existing incident data. It does not yet power map
-  analysis, task prioritization, chat, resource matching, incident creation,
+  situation report drafts from existing program data. It does not yet power map
+  analysis, task prioritization, chat, resource matching, program creation,
   report export, or document generation.
 - Reviewed AI SitRep drafts can now be saved through
   `POST /api/incidents/:id/sitreps` and persisted through the shared data
@@ -72,7 +74,7 @@ Status: mostly complete.
 - Completed: Scaffold Next.js-compatible Vinext app with TypeScript and
   Tailwind CSS.
 - Completed: Add Prisma schema and initial migration for PostgreSQL.
-- Completed: Define base models for users, organizations, incidents, needs,
+- Completed: Define base models for users, organizations, programs, needs,
   resources, tasks, partner activities, teams, and SitReps.
 - Completed: Add realistic in-repo demo data for local development.
 - Completed: Create shared app shell and reusable UI primitives.
@@ -99,7 +101,7 @@ Status: partially complete.
 ### Roles
 
 - Admin: full access
-- Coordinator: manage incidents, tasks, resources, and reports
+- Coordinator: manage programs, tasks, resources, and reports
 - Responder: create updates, needs, and task status changes
 - Partner: update own 3W activities
 - Viewer: read-only dashboard access
@@ -121,27 +123,29 @@ Status: partially complete.
 - Unauthorized users cannot access protected data mutations.
 - Each role sees only the actions available to it.
 
-## Phase 3: Incident Management
+## Phase 3: Program Management
 
 Status: partially complete for demo mode.
 
 ### Goals
 
-- Make incidents the central organizing object for response activity.
+- Make programs the central organizing object for response activity.
 
 ### Work Items
 
 - Completed: Build `/incidents` list page with filtering workspace.
-- Completed: Build `/incidents/new` create form.
+- Completed: Build `/incidents/new` create form using product-facing program terminology.
+- Completed: Add master budget, sub-program allocation, and initial fund request fields to program creation.
 - Completed: Build `/incidents/[id]` detail page with sections for:
   - Overview
   - Map
   - Needs
   - Tasks
-  - Resources
+  - Deployment
+  - Budget control
   - Partners
   - Situation Reports
-- Completed: Implement incident API route handlers:
+- Completed: Implement program API route handlers using the current `/api/incidents` paths:
   - `GET /api/incidents`
   - `POST /api/incidents`
   - `GET /api/incidents/:id`
@@ -154,9 +158,9 @@ Status: partially complete for demo mode.
 
 ### Exit Criteria
 
-- Coordinators can create and update incidents.
-- Users can view incident details.
-- Incident data is visible across dashboard and detail views.
+- Coordinators can create and update programs.
+- Users can view program details.
+- Program data is visible across dashboard and detail views.
 
 ## Phase 4: Needs and Task Coordination
 
@@ -168,7 +172,7 @@ Status: partially complete for demo mode.
 
 ### Work Items
 
-- Completed: Show incident needs and task tables in incident detail.
+- Completed: Show program needs and task tables in program detail.
 - Completed: Implement route handlers:
   - `GET /api/incidents/:id/needs`
   - `POST /api/incidents/:id/needs`
@@ -198,7 +202,7 @@ Status: partially complete for demo mode.
 ### Work Items
 
 - Completed: Build `/resources` inventory page.
-- Completed: Show incident resources and partner 3W activity in incident detail.
+- Completed: Show program resources and partner 3W activity in program detail.
 - Completed: Implement route handlers:
   - `GET /api/resources`
   - `POST /api/resources`
@@ -207,7 +211,7 @@ Status: partially complete for demo mode.
   - `GET /api/incidents/:id/activities`
   - `POST /api/incidents/:id/activities`
   - `PATCH /api/activities/:id`
-- Completed: Add deployment workspace for teams, incidents, and resources.
+- Completed: Add deployment workspace for teams, programs, and resources.
 - Remaining: Add full resource creation and update forms.
 - Remaining: Persist resource commitments and partner activity changes in
   Prisma-backed mode.
@@ -217,7 +221,7 @@ Status: partially complete for demo mode.
 
 - Logistics officers can track stock and commitments.
 - Coordinators can identify resource gaps.
-- Partner activities are visible by incident and location.
+- Partner activities are visible by program and location.
 
 ## Phase 6: Dashboard and Map
 
@@ -230,16 +234,16 @@ Status: mostly complete for demo mode.
 ### Work Items
 
 - Completed: Build `/dashboard` and home dashboard with:
-  - Active incidents
+  - Active programs
   - Severity mix
   - Open urgent needs
   - Resource gaps
   - Open tasks
   - Latest situation updates
 - Completed: Build `/map` operational map view.
-- Completed: Add map data for incidents, needs, resources, teams, and partner
+- Completed: Add map data for programs, needs, resources, teams, and partner
   activities.
-- Remaining: Add richer map layer controls and filters by incident, type,
+- Remaining: Add richer map layer controls and filters by program, type,
   urgency, status, and organization.
 - Remaining: Evaluate Leaflet or Mapbox if the current map needs more advanced
   geospatial interaction.
@@ -256,13 +260,13 @@ Status: partially complete, with AI drafting implemented.
 
 ### Goals
 
-- Generate concise reports from incident data.
+- Generate concise reports from program data.
 - Support user-reviewed AI drafting without automatically publishing generated text.
 
 ### Work Items
 
 - Completed: Build `/sitreps` list page.
-- Completed: Build Situation Reports section in incident detail.
+- Completed: Build Situation Reports section in program detail.
 - Remaining: Add create/edit flow for SitRep sections:
   - Summary
   - Current impact
@@ -272,7 +276,7 @@ Status: partially complete, with AI drafting implemented.
   - Next operational period priorities
 - Completed: Add text export endpoint.
 - Remaining: Add PDF export after report layout is stable.
-- Completed: Add AI-assisted draft generation from incident, needs, task,
+- Completed: Add AI-assisted draft generation from program, needs, task,
   resource, team, partner, and previous report context.
 - Completed: Save reviewed AI drafts as official SitRep records through the
   SitRep POST route.
@@ -289,10 +293,10 @@ Status: partially complete, with AI drafting implemented.
 
 ### Exit Criteria
 
-- Coordinators can create SitReps for incidents.
+- Coordinators can create SitReps for programs.
 - Coordinators can generate editable AI SitRep drafts.
 - SitReps can be exported as text or PDF.
-- Report content reflects current incident data.
+- Report content reflects current program data.
 
 ## Phase 8: Admin and Hardening
 
@@ -338,19 +342,19 @@ Status: future scope.
 ### Candidate Use Cases
 
 - Map analysis: summarize clusters, coverage gaps, access constraints, and
-  high-priority locations from incident map layers.
+  high-priority locations from program map layers.
 - Task prioritization: rank open tasks using urgency, affected population,
   deadlines, dependencies, and available teams.
-- Operational chat: answer coordinator questions from incident data with clear
+- Operational chat: answer coordinator questions from program data with clear
   references to source records.
 - Resource matching: suggest inventory, teams, or partner activities that can
   address verified needs.
-- Incident creation: draft incident records from responder notes or intake text
+- Program creation: draft program records from responder notes or intake text
   while requiring human review before saving.
 - Report export: generate executive summaries or donor-ready variants from
   reviewed SitRep content.
 - Document generation: draft concept notes, briefings, and partner updates from
-  approved incident data.
+  approved program data.
 
 ### Work Items
 
@@ -372,7 +376,7 @@ Status: future scope.
 
 - User
 - Organization
-- Incident
+- Program
 - NeedReport
 - Resource
 - Task
@@ -384,7 +388,7 @@ Status: future scope.
 1. Mostly complete: Local app, schema, demo data, and layout are working.
 2. Partially complete: Cookie auth and mutation role checks exist; production
    auth provider, page protection, and audit logs remain.
-3. Partially complete: Incident pages and route handlers exist; durable Prisma
+3. Partially complete: Program pages and route handlers exist; durable Prisma
    writes and validation need hardening.
 4. Partially complete: Needs and task data is visible with route handlers;
    full workflow UI and persistence need hardening.
@@ -410,7 +414,7 @@ Status: future scope.
 - OpenAI data handling: review prompt payloads against privacy policy before
   production use.
 - Expanded AI scope: map analysis, task prioritization, chat, resource matching,
-  incident creation, report export, and document generation should remain future
+  program creation, report export, and document generation should remain future
   scope until auth, audit logging, rate limits, and approval workflows are in
   place.
 
@@ -419,10 +423,10 @@ Status: future scope.
 Start with a narrow but end-to-end slice:
 
 1. Authenticated coordinator logs in.
-2. Coordinator creates an incident.
-3. Responder submits a need for that incident.
+2. Coordinator creates a program.
+3. Responder submits a need for that program.
 4. Coordinator verifies the need and assigns a task.
-5. Dashboard shows the active incident, urgent need, and open task.
-6. Map shows the incident and need locations.
+5. Dashboard shows the active program, urgent need, and open task.
+6. Map shows the program and need locations.
 
 This slice proves the core operating model before expanding into inventory, partner coordination, and reports.

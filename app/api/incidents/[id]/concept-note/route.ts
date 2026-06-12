@@ -1,5 +1,6 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import {
+  formatCurrency,
   formatDateTime,
   formatNumber,
   data,
@@ -67,6 +68,25 @@ export async function GET(
         .map((activity) => `${activity.organization}: ${activity.activity}`)
         .join("; ")
     : "To be confirmed.";
+  const totalFundRequested = incident.fundRequests.reduce(
+    (total, fundRequest) => total + fundRequest.amount,
+    0,
+  );
+  const remainingBudget = Math.max(
+    incident.masterBudgetAmount - totalFundRequested,
+    0,
+  );
+  const fundRequestText = incident.fundRequests.length
+    ? incident.fundRequests
+        .map(
+          (fundRequest) =>
+            `${fundRequest.subProgramName}: ${formatCurrency(
+              fundRequest.amount,
+              fundRequest.currency,
+            )} requested by ${fundRequest.requestedByTeam} (${fundRequest.status})`,
+        )
+        .join("; ")
+    : "No fund requests recorded.";
 
   const replacements: Record<string, string[]> = {
     "Document Reference": [
@@ -94,14 +114,22 @@ export async function GET(
       `Situation reporting maintained by ${incident.lead}.`,
     ],
     Timeline: [
-      `Initial incident start: ${formatDateTime(incident.startTime)}.`,
+      `Initial program start: ${formatDateTime(incident.startTime)}.`,
       "Operational period: immediate response and stabilization over the next 14 days.",
     ],
     Constraints: [
       `Access, stock availability, and assessment coverage remain constraints. Current note: ${incident.latestUpdate}`,
     ],
     Budget: [
-      "Budget to be confirmed after logistics costing.",
+      `Master budget: ${formatCurrency(
+        incident.masterBudgetAmount,
+        incident.budgetCurrency,
+      )}.`,
+      `Fund requests: ${fundRequestText}`,
+      `Remaining control balance: ${formatCurrency(
+        remainingBudget,
+        incident.budgetCurrency,
+      )}.`,
       `Current committed items: ${deployedItems}`,
     ],
     "Possible Collaborating Partners": [partnerText],

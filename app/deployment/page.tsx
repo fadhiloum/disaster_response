@@ -20,8 +20,8 @@ export default async function DeploymentPage() {
             Deployment
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-600">
-            Assign teams and deploy inventory items to incidents. Item deployment
-            is ordered by FIFO so older stock is selected first.
+            Assign teams and deploy inventory items to programs. Item deployment
+            is ordered by FIFO so older stock stays at the top of each queue.
           </p>
         </header>
 

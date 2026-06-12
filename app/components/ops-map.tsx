@@ -26,18 +26,18 @@ export function OpsMap({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3">
         <div>
           <h2 className="text-base font-semibold text-zinc-950">
-            World Incident Map
+            World Program Map
           </h2>
           <p className="text-sm text-zinc-500">
             {focusIncident
               ? `${focusIncident.locationName}, ${focusIncident.country}`
-              : "All incidents by global location"}
+              : "All programs by global location"}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-semibold">
           <span className="flex items-center gap-1.5 text-zinc-600">
             <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-            Incident
+            Program
           </span>
         </div>
       </div>
@@ -91,7 +91,7 @@ export function OpsMap({
 
       {!compact ? (
         <div className="grid border-t border-zinc-200 md:grid-cols-3">
-          <MapStat label="Incidents" value={visibleIncidents.length.toString()} />
+          <MapStat label="Programs" value={visibleIncidents.length.toString()} />
           <MapStat label="Countries" value={countries.size.toString()} />
           <MapStat label="Affected people" value={formatNumber(affectedPeople)} />
         </div>

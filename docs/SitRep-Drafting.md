@@ -2,7 +2,7 @@
 
 ## Purpose
 
-AI-assisted SitRep drafting helps coordinators turn current incident data into a
+AI-assisted SitRep drafting helps coordinators turn current program data into a
 reviewable situation report draft. The feature is intended to reduce first-draft
 time, not replace human review or approval.
 
@@ -11,7 +11,7 @@ verify, and submit the final SitRep through the normal operational workflow.
 
 ## User Flow
 
-1. Open an incident detail page, for example `/incidents/flood-riverside`.
+1. Open a program detail page, for example `/incidents/flood-riverside`.
 2. Go to the Situation Reports section.
 3. Click `Draft with AI`.
 4. Review the generated draft in the editable text area.
@@ -36,7 +36,7 @@ The route handler is
 On each request, the route:
 
 1. Verifies `OPENAI_API_KEY` is configured.
-2. Loads the incident through `app/lib/data`.
+2. Loads the program through `app/lib/data`.
 3. Loads related needs, tasks, resources, teams, activities, and recent SitReps.
 4. Sends a constrained prompt to the OpenAI Responses API.
 5. Returns the generated draft text to the client.
@@ -52,16 +52,17 @@ defaults to `30000`.
 
 ## Data Included in the Prompt
 
-The prompt includes operational incident context only:
+The prompt includes operational program context only:
 
-- Incident title, type, status, severity, location, lead, description, and latest
+- Program title, type, status, severity, location, lead, description, and latest
   update.
 - Affected population, open needs, resource gaps, and assigned teams.
-- Incident needs, tasks, resources, deployed teams, and partner activities.
+- Program needs, tasks, resources, deployed teams, partner activities, master
+  budget, and fund requests.
 - Up to two previous SitReps for continuity.
 
 Avoid adding unnecessary personal data, medical details, or sensitive household
-information to incident records before generating a draft.
+information to program records before generating a draft.
 
 ## Local Testing
 
@@ -107,7 +108,7 @@ Expected success response:
 Expected errors:
 
 - `503` if `OPENAI_API_KEY` is missing.
-- `404` if the incident ID does not exist.
+- `404` if the program ID does not exist.
 - `504` if the OpenAI request times out.
 
 ## Automated Tests
@@ -119,7 +120,7 @@ npm run test
 ```
 
 The route tests are in `tests/ai-sitrep-route.test.ts`. They mock the OpenAI
-client and verify missing-key, missing-incident, and successful-draft behavior.
+client and verify missing-key, missing-program, and successful-draft behavior.
 `tests/sitrep-route.test.ts` covers reviewed draft persistence through the
 SitRep POST route.
 

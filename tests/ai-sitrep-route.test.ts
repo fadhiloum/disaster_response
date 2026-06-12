@@ -20,6 +20,23 @@ const incident = {
   description: "River overflow has displaced low-lying communities.",
   lead: "Maya Chen",
   latestUpdate: "Potable water remains the largest gap.",
+  budgetCurrency: "MYR",
+  masterBudgetAmount: 750000,
+  subPrograms: [
+    { id: "sub-riverside-wash", name: "WASH", budgetAllocated: 210000 },
+  ],
+  fundRequests: [
+    {
+      id: "fund-riverside-wash-001",
+      subProgramName: "WASH",
+      requestedByTeam: "Field Team North",
+      amount: 120000,
+      currency: "MYR",
+      purpose: "Water trucking and hygiene supplies.",
+      status: "approved",
+      requestedAt: "2026-06-10T09:30:00+07:00",
+    },
+  ],
 };
 
 function mockDataRepository(overrides: Partial<typeof baseData> = {}) {
@@ -27,6 +44,8 @@ function mockDataRepository(overrides: Partial<typeof baseData> = {}) {
 
   vi.doMock("@/app/lib/data", () => ({
     data,
+    formatCurrency: (value: number, currency = "MYR") =>
+      `${currency} ${value.toLocaleString("en")}`,
     formatDateTime: (value: string) => value,
     formatNumber: (value: number) => value.toLocaleString("en"),
   }));
