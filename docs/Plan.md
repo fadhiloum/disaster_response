@@ -266,10 +266,14 @@ Status: mostly complete for demo mode.
 - Completed: Build `/map` operational map view.
 - Completed: Add map data for programs, needs, resources, teams, and partner
   activities.
-- Remaining: Add richer map layer controls and filters by program, type,
+- Completed: Add richer map layer controls and filters by program, type,
   urgency, status, and organization.
-- Remaining: Evaluate Leaflet or Mapbox if the current map needs more advanced
-  geospatial interaction.
+- Completed: Evaluate the next map provider step: keep the current lightweight
+  map for MVP, use Leaflet first when true pan, zoom, clustering, GeoJSON, or
+  tile-layer controls are needed, and reserve Mapbox for a later polished
+  production map that can justify token, pricing, and licensing requirements.
+- Remaining: Consider PostGIS-backed queries when advanced geospatial filtering
+  or distance calculations become required.
 
 ### Exit Criteria
 
@@ -299,6 +303,8 @@ Status: partially complete, with AI drafting implemented.
   - Next operational period priorities
 - Completed: Add text export endpoint.
 - Completed: Add PDF export endpoint.
+- Completed: Add operational, donor, and executive SitRep export variants with
+  more polished TXT and PDF output.
 - Completed: Add AI-assisted draft generation from program, needs, task,
   resource, team, partner, previous report, budget, and fund request context.
 - Completed: Require OpenAI web search during SitRep generation to add recent
@@ -439,8 +445,9 @@ Status: future scope.
 - Map provider: Leaflet is simpler for MVP, Mapbox may be better for polished production mapping.
 - Geospatial depth: MVP can store coordinates directly, but advanced filtering should use PostGIS.
 - Offline mode: useful for field responders, but should remain post-MVP unless explicitly prioritized.
-- PDF generation: basic SitRep PDF export exists; production report layout can
-  be refined later.
+- PDF generation: SitRep exports now have operational, donor, and executive
+  variants; production donor templates can still be refined later if branding
+  or print layout requirements become stricter.
 - File uploads: attachments and photos should be scoped carefully to avoid delaying core workflows.
 - AI output governance: generated operational text must remain draft-only until
   reviewed by an accountable coordinator.

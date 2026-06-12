@@ -59,6 +59,11 @@ export default async function SitRepsPage() {
                       <Link href={`/api/sitreps/${report.id}/export?format=pdf`}>
                         PDF
                       </Link>
+                      <Link
+                        href={`/api/sitreps/${report.id}/export?format=pdf&variant=donor`}
+                      >
+                        Donor PDF
+                      </Link>
                     </div>
                   </article>
                 );
