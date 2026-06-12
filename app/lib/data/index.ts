@@ -88,17 +88,38 @@ export const data: DataRepository = {
   async getIncidentNeeds(id) {
     return (await getRepository()).getIncidentNeeds(id);
   },
+  async createNeed(input) {
+    return (await getRepository()).createNeed(input);
+  },
+  async updateNeed(id, input) {
+    return (await getRepository()).updateNeed(id, input);
+  },
   async listTasks() {
     return (await getRepository()).listTasks();
   },
   async getIncidentTasks(id) {
     return (await getRepository()).getIncidentTasks(id);
   },
+  async createTask(input) {
+    return (await getRepository()).createTask(input);
+  },
+  async updateTask(id, input) {
+    return (await getRepository()).updateTask(id, input);
+  },
   async listResources() {
     return (await getRepository()).listResources();
   },
   async getIncidentResources(id) {
     return (await getRepository()).getIncidentResources(id);
+  },
+  async createResource(input) {
+    return (await getRepository()).createResource(input);
+  },
+  async updateResource(id, input) {
+    return (await getRepository()).updateResource(id, input);
+  },
+  async commitResource(id, input) {
+    return (await getRepository()).commitResource(id, input);
   },
   async listDeployedTeams() {
     return (await getRepository()).listDeployedTeams();
@@ -111,6 +132,12 @@ export const data: DataRepository = {
   },
   async getIncidentActivities(id) {
     return (await getRepository()).getIncidentActivities(id);
+  },
+  async createPartnerActivity(input) {
+    return (await getRepository()).createPartnerActivity(input);
+  },
+  async updatePartnerActivity(id, input) {
+    return (await getRepository()).updatePartnerActivity(id, input);
   },
   async listSituationReports() {
     return (await getRepository()).listSituationReports();

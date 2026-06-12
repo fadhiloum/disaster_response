@@ -61,7 +61,9 @@ export function DeploymentWorkspace({
   const [resourceForm, setResourceForm] = useState(emptyResourceForm);
   const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
   const [resourceStatus, setResourceStatus] = useState<string | null>(null);
+  const [deploymentStatus, setDeploymentStatus] = useState<string | null>(null);
   const [isSavingResource, setIsSavingResource] = useState(false);
+  const [isDeployingItems, setIsDeployingItems] = useState(false);
   const [teamForm, setTeamForm] = useState({
     incidentId: incidents[0]?.id ?? "",
     name: "",
@@ -84,8 +86,9 @@ export function DeploymentWorkspace({
     [resources],
   );
 
-  function confirmItemDeployment() {
+  async function confirmItemDeployment() {
     const chosenResources = fifoResources.filter((resource) => selected[resource.id]);
+    setDeploymentStatus(null);
 
     if (!chosenResources.length) {
       window.alert("Select at least one item to deploy.");
@@ -107,34 +110,65 @@ export function DeploymentWorkspace({
     }
 
     const deployedAt = new Date().toISOString();
-    const nextLog: DeploymentLogEntry[] = chosenResources.map((resource) => ({
-      id: `${resource.id}-${deployedAt}`,
-      incidentId: incidentByResource[resource.id],
-      quantity: quantityByResource[resource.id] ?? 1,
-      resourceName: resource.name,
-      unit: resource.unit,
-      deployedAt,
-    }));
+    setIsDeployingItems(true);
+
+    const responses = await Promise.all(
+      chosenResources.map(async (resource) => {
+        const quantity = quantityByResource[resource.id] ?? 1;
+        const response = await fetch(`/api/resources/${resource.id}/commit`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            incidentId: incidentByResource[resource.id],
+            quantity,
+            note: "Deployment workspace commitment",
+          }),
+        });
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => null);
+          throw new Error(result?.error ?? "Could not confirm deployment.");
+        }
+
+        const result = (await response.json()) as { data: Resource };
+
+        return {
+          log: {
+            id: `${resource.id}-${deployedAt}`,
+            incidentId: incidentByResource[resource.id],
+            quantity,
+            resourceName: resource.name,
+            unit: resource.unit,
+            deployedAt,
+          },
+          resource: result.data,
+        };
+      }),
+    ).catch((error: Error) => {
+      setDeploymentStatus(error.message);
+      return null;
+    });
+
+    setIsDeployingItems(false);
+
+    if (!responses) {
+      return;
+    }
+
+    const nextLog = responses.map((response) => response.log);
 
     setResources((current) =>
       current.map((resource) => {
-        const logEntry = nextLog.find((entry) =>
-          entry.id.startsWith(`${resource.id}-`),
+        const updated = responses.find((response) =>
+          response.log.id.startsWith(`${resource.id}-`),
         );
 
-        if (!logEntry) {
-          return resource;
-        }
-
-        return {
-          ...resource,
-          assignedIncidentId: logEntry.incidentId,
-          quantityCommitted: resource.quantityCommitted + logEntry.quantity,
-        };
+        return updated?.resource ?? resource;
       }),
     );
     setDeploymentLog((current) => [...nextLog, ...current]);
     setSelected({});
+    setDeploymentStatus("Deployment committed.");
   }
 
   async function saveResource(event: React.FormEvent<HTMLFormElement>) {
@@ -386,13 +420,19 @@ export function DeploymentWorkspace({
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 p-4">
               <SectionHeader title="Item Deployment" />
               <button
-                className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82]"
+                className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1d3c82] disabled:cursor-not-allowed disabled:bg-zinc-300"
+                disabled={isDeployingItems}
                 onClick={confirmItemDeployment}
                 type="button"
               >
-                Confirm deployment
+                {isDeployingItems ? "Committing..." : "Confirm deployment"}
               </button>
             </div>
+            {deploymentStatus ? (
+              <p className="border-b border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-600">
+                {deploymentStatus}
+              </p>
+            ) : null}
 
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-zinc-200 text-sm">

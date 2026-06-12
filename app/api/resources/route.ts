@@ -15,15 +15,23 @@ export async function POST(request: Request) {
   }
 
   const payload = await request.json();
+  const resource = await data.createResource({
+    name: payload.name,
+    category: payload.category,
+    quantityAvailable: Number(payload.quantityAvailable ?? 0),
+    quantityCommitted:
+      payload.quantityCommitted !== undefined
+        ? Number(payload.quantityCommitted)
+        : undefined,
+    unit: payload.unit,
+    warehouseLocation: payload.warehouseLocation,
+    receivedAt: payload.receivedAt,
+    expiryDate: payload.expiryDate,
+  });
 
   return Response.json(
     {
-      data: {
-        id: crypto.randomUUID(),
-        assignedIncidentId: null,
-        quantityCommitted: 0,
-        ...payload,
-      },
+      data: resource,
       mode: data.backend,
     },
     { status: 201 },

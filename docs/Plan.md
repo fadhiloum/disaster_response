@@ -44,8 +44,12 @@ working demo MVP slice:
   prisma:deploy` and seed data loaded through `npm run prisma:seed`.
 - Program records now include master budget controls, sub-program allocations,
   and fund requests that must remain within the master budget.
-- Prisma-backed program reads now preserve operational location/update fields,
-  sub-program allocations, fund requests, and resource assignments.
+- Prisma-backed program reads and writes now preserve operational
+  location/update fields, sub-program allocations, fund requests, and resource
+  assignments.
+- Need, task, resource, resource commitment, and partner activity mutation
+  routes now persist through the shared data repository in both demo and Prisma
+  modes.
 - OpenAI SitRep drafting is implemented through the Responses API with required
   web search context and covered by mocked Vitest route tests.
 - OpenAI concept-note drafting is implemented as an editable, versioned
@@ -68,8 +72,8 @@ working demo MVP slice:
   `npm run lint`, and `npm run vercel-build`.
 
 Remaining MVP work is mostly hardening: production auth provider integration,
-production persistence writes, form validation depth, richer tests, audit logs,
-workflow status controls, and deployment environment setup.
+form validation depth, richer tests, audit logs, workflow status controls, and
+deployment environment setup.
 
 ## Phase 1: Project Foundation
 
@@ -165,7 +169,7 @@ Status: partially complete for demo mode.
   - `PATCH /api/incidents/:id`
   - `DELETE /api/incidents/:id`
 - Completed: Add `/incidents/[id]/edit` page.
-- Remaining: Persist create/update/delete operations in Prisma-backed mode.
+- Completed: Persist create/update/delete operations in Prisma-backed mode.
 - Remaining: Add stricter validation for required fields, status, severity,
   disaster type, and coordinates.
 
@@ -195,7 +199,8 @@ Status: partially complete for demo mode.
   - `PATCH /api/tasks/:id`
 - Completed: Add responder-facing need submission UI.
 - Completed: Add coordinator task creation and assignment UI.
-- Remaining: Persist status workflow changes in Prisma-backed mode.
+- Completed: Persist need and task create/update operations in Prisma-backed
+  mode.
 - Remaining: Add task status update UI for responders.
 - Remaining: Add need verification UI for coordinators.
 - Remaining: Add validation depth and role-aware UI states.
@@ -229,9 +234,10 @@ Status: partially complete for demo mode.
 - Completed: Add deployment workspace for teams, programs, and resources.
 - Completed: Add resource creation and update forms in the deployment
   workspace.
-- Remaining: Persist resource commitments and partner activity changes in
-  Prisma-backed mode.
-- Remaining: Add validation, role checks, and stock conflict handling.
+- Completed: Persist resources, resource commitments, and partner activity
+  changes in Prisma-backed mode.
+- Completed: Add basic stock conflict handling for resource commitments.
+- Remaining: Add deeper validation and role-aware UI states.
 
 ### Exit Criteria
 
@@ -410,13 +416,13 @@ Status: future scope.
 1. Mostly complete: Local app, schema, demo data, and layout are working.
 2. Partially complete: Cookie auth and mutation role checks exist; production
    auth provider, page protection, and audit logs remain.
-3. Partially complete: Program pages and route handlers exist; durable Prisma
-   writes and validation need hardening.
+3. Partially complete: Program pages, route handlers, and durable Prisma writes
+   exist; validation needs hardening.
 4. Partially complete: Needs and task data is visible with route handlers and
-   create forms; status workflow UI and persistence need hardening.
+   create forms; status workflow UI and validation need hardening.
 5. Partially complete: Resources and partner 3W are visible with route
-   handlers; resource creation/update forms exist; validation and durable
-   writes need hardening.
+   handlers; resource creation/update forms and durable writes exist;
+   validation needs hardening.
 6. Mostly complete: Dashboard and map provide a useful demo operating picture.
 7. Partially complete: SitReps can be listed, manually created, generated from
    AI drafts, and exported as text or PDF; edit and approval workflows remain.

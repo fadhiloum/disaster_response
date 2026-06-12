@@ -28,12 +28,23 @@ export async function POST(
     );
   }
 
+  const freeQuantity = resource.quantityAvailable - resource.quantityCommitted;
+
+  if (quantity > freeQuantity) {
+    return Response.json(
+      { error: "Commit quantity exceeds available stock" },
+      { status: 409 },
+    );
+  }
+
+  const updatedResource = await data.commitResource(id, {
+    incidentId: payload.incidentId,
+    quantity,
+    note: payload.note,
+  });
+
   return Response.json({
-    data: {
-      ...resource,
-      quantityCommitted: resource.quantityCommitted + quantity,
-      assignedIncidentId: payload.incidentId ?? resource.assignedIncidentId,
-    },
+    data: updatedResource ?? resource,
     mode: data.backend,
   });
 }

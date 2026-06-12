@@ -19,13 +19,30 @@ export async function PATCH(
   }
 
   const payload = await request.json();
+  const updatedNeed = await data.updateNeed(id, {
+    category: payload.category,
+    urgency: payload.urgency,
+    quantity:
+      payload.quantity !== undefined ? Number(payload.quantity) : undefined,
+    unit: payload.unit,
+    affectedPeople:
+      payload.affectedPeople !== undefined
+        ? Number(payload.affectedPeople)
+        : undefined,
+    status: payload.status,
+    locationName: payload.locationName,
+    latitude: payload.latitude !== undefined ? Number(payload.latitude) : undefined,
+    longitude:
+      payload.longitude !== undefined ? Number(payload.longitude) : undefined,
+    notes: payload.notes,
+    verifiedById:
+      payload.status === "verified" || payload.status === "assigned"
+        ? auth.user.id
+        : payload.verifiedById,
+  });
 
   return Response.json({
-    data: {
-      ...need,
-      ...payload,
-      id: need.id,
-    },
+    data: updatedNeed ?? need,
     mode: data.backend,
   });
 }

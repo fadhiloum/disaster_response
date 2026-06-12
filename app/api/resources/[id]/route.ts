@@ -19,13 +19,25 @@ export async function PATCH(
   }
 
   const payload = await request.json();
+  const updatedResource = await data.updateResource(id, {
+    name: payload.name,
+    category: payload.category,
+    quantityAvailable:
+      payload.quantityAvailable !== undefined
+        ? Number(payload.quantityAvailable)
+        : undefined,
+    quantityCommitted:
+      payload.quantityCommitted !== undefined
+        ? Number(payload.quantityCommitted)
+        : undefined,
+    unit: payload.unit,
+    warehouseLocation: payload.warehouseLocation,
+    receivedAt: payload.receivedAt,
+    expiryDate: payload.expiryDate,
+  });
 
   return Response.json({
-    data: {
-      ...resource,
-      ...payload,
-      id: resource.id,
-    },
+    data: updatedResource ?? resource,
     mode: data.backend,
   });
 }

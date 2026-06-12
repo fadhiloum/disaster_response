@@ -77,12 +77,12 @@ npm run prisma:seed
 
 Next persistence tasks:
 
-- Persist create, update, and delete program operations in Prisma-backed mode.
-- Persist need, task, resource, resource commitment, and partner activity
-  mutations in Prisma-backed mode.
-- Add status workflow persistence for need verification and task updates.
 - Implement the Drizzle/D1 adapter tables if Cloudflare D1 becomes a target.
 - Continue hardening validation, role-aware UI states, and audit logging.
+
+Prisma-backed mode now persists program, need, task, resource, resource
+commitment, partner activity, SitRep, and concept note mutations through the
+shared data repository.
 
 ## OpenAI Notes
 

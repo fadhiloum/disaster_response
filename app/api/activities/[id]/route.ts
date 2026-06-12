@@ -21,13 +21,25 @@ export async function PATCH(
   }
 
   const payload = await request.json();
+  const updatedActivity = await data.updatePartnerActivity(id, {
+    organization: payload.organization,
+    organizationId: payload.organizationId,
+    incidentId: payload.incidentId,
+    sector: payload.sector,
+    activity: payload.activity,
+    locationName: payload.locationName,
+    latitude: payload.latitude !== undefined ? Number(payload.latitude) : undefined,
+    longitude:
+      payload.longitude !== undefined ? Number(payload.longitude) : undefined,
+    status: payload.status,
+    contactName: payload.contactName,
+    contactPhone: payload.contactPhone,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+  });
 
   return Response.json({
-    data: {
-      ...activity,
-      ...payload,
-      id: activity.id,
-    },
+    data: updatedActivity ?? activity,
     mode: data.backend,
   });
 }
