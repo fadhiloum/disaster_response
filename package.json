@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "vercel-build": "next build",
+    "vercel-build": "prisma migrate deploy && prisma generate && next build",
     "start": "vinext start",
     "test": "vitest run",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
