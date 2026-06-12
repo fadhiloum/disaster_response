@@ -43,12 +43,12 @@ working demo MVP slice:
   persistence.
 - Program records now include master budget controls, sub-program allocations,
   and fund requests that must remain within the master budget.
-- OpenAI SitRep drafting is implemented through the Responses API and covered by
-  mocked Vitest route tests.
+- OpenAI SitRep drafting is implemented through the Responses API with required
+  web search context and covered by mocked Vitest route tests.
 - The current OpenAI integration is deliberately scoped to generating editable
-  situation report drafts from existing program data. It does not yet power map
-  analysis, task prioritization, chat, resource matching, program creation,
-  report export, or document generation.
+  situation report drafts from existing program data plus recent external web
+  context. It does not yet power map analysis, task prioritization, chat,
+  resource matching, program creation, report export, or document generation.
 - Reviewed AI SitRep drafts can now be saved through
   `POST /api/incidents/:id/sitreps` and persisted through the shared data
   repository.
@@ -277,7 +277,11 @@ Status: partially complete, with AI drafting implemented.
 - Completed: Add text export endpoint.
 - Remaining: Add PDF export after report layout is stable.
 - Completed: Add AI-assisted draft generation from program, needs, task,
-  resource, team, partner, and previous report context.
+  resource, team, partner, previous report, budget, and fund request context.
+- Completed: Require OpenAI web search during SitRep generation to add recent
+  external updates from authorities, other NGOs, UN/IFRC-style sources, and
+  reputable local reporting.
+- Completed: Return and display web source links below the editable SitRep draft.
 - Completed: Save reviewed AI drafts as official SitRep records through the
   SitRep POST route.
 - Completed: Implement route handlers:
@@ -294,7 +298,8 @@ Status: partially complete, with AI drafting implemented.
 ### Exit Criteria
 
 - Coordinators can create SitReps for programs.
-- Coordinators can generate editable AI SitRep drafts.
+- Coordinators can generate editable AI SitRep drafts from program data and
+  recent web context.
 - SitReps can be exported as text or PDF.
 - Report content reflects current program data.
 

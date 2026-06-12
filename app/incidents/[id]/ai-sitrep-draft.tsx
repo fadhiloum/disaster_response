@@ -13,6 +13,11 @@ type SitrepSections = {
   nextPriorities: string;
 };
 
+type WebSource = {
+  title: string;
+  url: string;
+};
+
 const sectionHeadings: Array<{
   key: keyof SitrepSections;
   labels: readonly string[];
@@ -123,6 +128,7 @@ export function AiSitrepDraft({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState("");
+  const [sources, setSources] = useState<WebSource[]>([]);
   const blockedMessage = authMessage(currentUserRole);
 
   async function generateDraft() {
@@ -134,6 +140,7 @@ export function AiSitrepDraft({
     setIsLoading(true);
     setError("");
     setSavedMessage("");
+    setSources([]);
 
     try {
       const response = await fetch(
@@ -147,6 +154,7 @@ export function AiSitrepDraft({
       }
 
       setDraft(payload.data.draft);
+      setSources(payload.data.sources ?? []);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -206,11 +214,11 @@ export function AiSitrepDraft({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-zinc-950">
-            AI SitRep Draft
+            Generate SitRep
           </h3>
           <p className="mt-1 text-sm text-zinc-600">
-            Generate an editable operational draft from the current program
-            data.
+            Generate an editable draft from program data and latest web context
+            from authorities, NGOs, and trusted response sources.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -220,7 +228,7 @@ export function AiSitrepDraft({
             onClick={generateDraft}
             type="button"
           >
-            {isLoading ? "Drafting..." : "Draft with AI"}
+            {isLoading ? "Searching and drafting..." : "Generate with AI"}
           </button>
           <button
             className="inline-flex min-h-10 items-center justify-center rounded-md border border-[#244a9b] bg-white px-4 text-sm font-semibold text-[#244a9b] transition hover:bg-[#eef3ff] focus:outline-none focus:ring-2 focus:ring-[#244a9b] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
@@ -257,6 +265,28 @@ export function AiSitrepDraft({
           onChange={(event) => setDraft(event.target.value)}
           value={draft}
         />
+      ) : null}
+
+      {sources.length ? (
+        <div className="mt-4 rounded-md border border-zinc-200 bg-white p-3">
+          <p className="text-sm font-semibold text-zinc-700">
+            Web sources used
+          </p>
+          <ul className="mt-2 space-y-2 text-sm">
+            {sources.map((source) => (
+              <li key={source.url}>
+                <a
+                  className="font-semibold text-[#244a9b] underline-offset-2 hover:underline"
+                  href={source.url}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {source.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
     </div>
   );
