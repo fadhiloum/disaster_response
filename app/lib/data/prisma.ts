@@ -1,11 +1,14 @@
 import type {
   ConceptNote as PrismaConceptNote,
   DisasterType,
+  FundRequest as PrismaFundRequest,
   Incident as PrismaIncident,
   NeedReport as PrismaNeedReport,
   Organization,
   PartnerActivity as PrismaPartnerActivity,
+  ProgramSubProgram as PrismaProgramSubProgram,
   Resource as PrismaResource,
+  ResourceMovement as PrismaResourceMovement,
   Role as PrismaRole,
   Severity as PrismaSeverity,
   SituationReport as PrismaSituationReport,
@@ -33,6 +36,8 @@ import type {
   DataRepository,
   DashboardSummary,
   CreateConceptNoteVersionInput,
+  CreateIncidentInput,
+  UpdateIncidentInput,
 } from "./repository";
 
 type UserWithOrg = PrismaUser & { organization: Organization | null };
@@ -40,13 +45,14 @@ type IncidentWithRelations = PrismaIncident & {
   createdBy: PrismaUser;
   needs: PrismaNeedReport[];
   tasks: PrismaTask[];
-};
-type IncidentBudgetFields = {
-  budgetCurrency?: string | null;
-  masterBudgetAmount?: { toNumber(): number } | number | null;
+  subPrograms: PrismaProgramSubProgram[];
+  fundRequests: PrismaFundRequest[];
 };
 type NeedWithReporter = PrismaNeedReport & { reportedBy: PrismaUser };
 type TaskWithAssignee = PrismaTask & { assignee: PrismaUser | null };
+type ResourceWithMovements = PrismaResource & {
+  movements: PrismaResourceMovement[];
+};
 type ActivityWithOrg = PrismaPartnerActivity & { organization: Organization };
 type SitrepWithCreator = PrismaSituationReport & { createdBy: PrismaUser };
 type ConceptNoteWithCreator = PrismaConceptNote & { createdBy: PrismaUser };
@@ -105,6 +111,30 @@ const priorityLabels = {
   CRITICAL: "critical",
 } as const;
 
+const disasterValues: Record<string, DisasterType> = {
+  flood: "FLOOD",
+  earthquake: "EARTHQUAKE",
+  landslide: "LANDSLIDE",
+  fire: "FIRE",
+  storm: "STORM",
+  conflict: "CONFLICT",
+  other: "OTHER",
+};
+
+const severityValues: Record<Severity, PrismaSeverity> = {
+  low: "LOW",
+  moderate: "MODERATE",
+  high: "HIGH",
+  critical: "CRITICAL",
+};
+
+const incidentStatusValues: Record<IncidentStatus, keyof typeof incidentStatusLabels> = {
+  monitoring: "MONITORING",
+  active: "ACTIVE",
+  stabilizing: "STABILIZING",
+  closed: "CLOSED",
+};
+
 const fallbackUser: User = {
   id: "system",
   name: "Operations User",
@@ -136,7 +166,11 @@ function mapIncident(incident: IncidentWithRelations): Incident {
     (total, need) => total + need.affectedPeople,
     0,
   );
-  const budgetFields = incident as IncidentWithRelations & IncidentBudgetFields;
+  const assignedTeamIds = new Set(
+    incident.tasks
+      .map((task) => task.assigneeId)
+      .filter((assigneeId): assigneeId is string => Boolean(assigneeId)),
+  );
 
   return {
     id: incident.id,
@@ -144,25 +178,135 @@ function mapIncident(incident: IncidentWithRelations): Incident {
     disasterType: disasterLabels[incident.disasterType],
     severity: severityLabels[incident.severity],
     status: incidentStatusLabels[incident.status],
-    region: "",
-    country: "",
-    state: "",
+    region: incident.region,
+    country: incident.country,
+    state: incident.state,
     locationName: incident.locationName,
     latitude: toNumber(incident.latitude),
     longitude: toNumber(incident.longitude),
     affectedPeople,
     openNeeds: incident.needs.filter((need) => need.status !== "CLOSED").length,
-    resourceGaps: 0,
-    assignedTeams: 0,
+    resourceGaps: incident.needs.filter(
+      (need) =>
+        need.status !== "CLOSED" &&
+        (need.urgency === "HIGH" || need.urgency === "CRITICAL"),
+    ).length,
+    assignedTeams: assignedTeamIds.size,
     startTime: incident.startTime.toISOString(),
     description: incident.description,
     lead: incident.createdBy.name,
-    latestUpdate: incident.description,
-    budgetCurrency: budgetFields.budgetCurrency ?? "MYR",
-    masterBudgetAmount: toNumber(budgetFields.masterBudgetAmount ?? 0),
-    subPrograms: [],
-    fundRequests: [],
+    latestUpdate: incident.latestUpdate || incident.description,
+    budgetCurrency: incident.budgetCurrency,
+    masterBudgetAmount: toNumber(incident.masterBudgetAmount),
+    subPrograms: incident.subPrograms.map((subProgram) => ({
+      id: subProgram.id,
+      name: subProgram.name,
+      budgetAllocated: toNumber(subProgram.budgetAllocated),
+    })),
+    fundRequests: incident.fundRequests.map((request) => ({
+      id: request.id,
+      subProgramName: request.subProgramName,
+      requestedByTeam: request.requestedByTeam,
+      amount: toNumber(request.amount),
+      currency: request.currency,
+      purpose: request.purpose,
+      status: request.status as Incident["fundRequests"][number]["status"],
+      requestedAt: request.requestedAt.toISOString(),
+    })),
   };
+}
+
+function incidentRelationInclude() {
+  return {
+    createdBy: true,
+    fundRequests: { orderBy: { requestedAt: "desc" } },
+    needs: true,
+    subPrograms: { orderBy: { createdAt: "asc" } },
+    tasks: true,
+  } as const;
+}
+
+function toIncidentCreateData(input: CreateIncidentInput, createdById: string) {
+  return {
+    title: input.title,
+    disasterType: disasterValues[input.disasterType] ?? "OTHER",
+    severity: severityValues[input.severity],
+    status: incidentStatusValues[input.status],
+    region: input.region,
+    country: input.country,
+    state: input.state,
+    description: input.description,
+    latestUpdate: input.latestUpdate ?? input.description,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    locationName: input.locationName,
+    startTime: new Date(input.startTime),
+    budgetCurrency: input.budgetCurrency,
+    masterBudgetAmount: input.masterBudgetAmount,
+    createdById,
+  };
+}
+
+function toIncidentUpdateData(input: UpdateIncidentInput) {
+  return {
+    ...(input.title !== undefined ? { title: input.title } : {}),
+    ...(input.disasterType !== undefined
+      ? { disasterType: disasterValues[input.disasterType] ?? "OTHER" }
+      : {}),
+    ...(input.severity !== undefined ? { severity: severityValues[input.severity] } : {}),
+    ...(input.status !== undefined
+      ? { status: incidentStatusValues[input.status] }
+      : {}),
+    ...(input.region !== undefined ? { region: input.region } : {}),
+    ...(input.country !== undefined ? { country: input.country } : {}),
+    ...(input.state !== undefined ? { state: input.state } : {}),
+    ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.latestUpdate !== undefined ? { latestUpdate: input.latestUpdate } : {}),
+    ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+    ...(input.longitude !== undefined ? { longitude: input.longitude } : {}),
+    ...(input.locationName !== undefined ? { locationName: input.locationName } : {}),
+    ...(input.startTime !== undefined ? { startTime: new Date(input.startTime) } : {}),
+    ...(input.budgetCurrency !== undefined
+      ? { budgetCurrency: input.budgetCurrency }
+      : {}),
+    ...(input.masterBudgetAmount !== undefined
+      ? { masterBudgetAmount: input.masterBudgetAmount }
+      : {}),
+  };
+}
+
+function subProgramCreateManyData(
+  incidentId: string,
+  input: CreateIncidentInput | UpdateIncidentInput,
+) {
+  return (
+    input.subPrograms?.map((subProgram) => ({
+      ...(subProgram.id ? { id: subProgram.id } : {}),
+      incidentId,
+      name: subProgram.name,
+      budgetAllocated: subProgram.budgetAllocated,
+    })) ?? []
+  );
+}
+
+function fundRequestCreateManyData(
+  incidentId: string,
+  input: CreateIncidentInput | UpdateIncidentInput,
+  fallbackCurrency: string,
+) {
+  return (
+    input.fundRequests?.map((request) => ({
+      ...(request.id ? { id: request.id } : {}),
+      incidentId,
+      subProgramName: request.subProgramName,
+      requestedByTeam: request.requestedByTeam,
+      amount: request.amount,
+      currency: request.currency ?? input.budgetCurrency ?? fallbackCurrency,
+      purpose: request.purpose,
+      status: request.status ?? "draft",
+      requestedAt: request.requestedAt ? new Date(request.requestedAt) : new Date(),
+    })) ?? []
+  );
 }
 
 function mapNeed(need: NeedWithReporter): NeedReport {
@@ -201,7 +345,9 @@ function mapTask(task: TaskWithAssignee): ResponseTask {
   };
 }
 
-function mapResource(resource: PrismaResource): Resource {
+function mapResource(resource: ResourceWithMovements): Resource {
+  const latestMovement = resource.movements[0];
+
   return {
     id: resource.id,
     name: resource.name,
@@ -212,7 +358,7 @@ function mapResource(resource: PrismaResource): Resource {
     warehouseLocation: resource.warehouseLocation,
     receivedAt: resource.createdAt.toISOString(),
     expiryDate: toIso(resource.expiryDate),
-    assignedIncidentId: null,
+    assignedIncidentId: latestMovement?.incidentId ?? null,
   };
 }
 
@@ -310,7 +456,7 @@ export const prismaRepository: DataRepository = {
   },
   async listIncidents() {
     const incidents = await prisma.incident.findMany({
-      include: { createdBy: true, needs: true, tasks: true },
+      include: incidentRelationInclude(),
       orderBy: { startTime: "desc" },
     });
 
@@ -319,10 +465,101 @@ export const prismaRepository: DataRepository = {
   async getIncident(id) {
     const incident = await prisma.incident.findUnique({
       where: { id },
-      include: { createdBy: true, needs: true, tasks: true },
+      include: incidentRelationInclude(),
     });
 
     return incident ? mapIncident(incident) : undefined;
+  },
+  async createIncident(input) {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: input.createdById ?? "" },
+    }) ?? await prisma.user.findFirst({
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!currentUser) {
+      throw new Error("Cannot create a program without a user.");
+    }
+
+    const incident = await prisma.$transaction(async (tx) => {
+      const created = await tx.incident.create({
+        data: toIncidentCreateData(input, currentUser.id),
+      });
+      const subPrograms = subProgramCreateManyData(created.id, input);
+      const fundRequests = fundRequestCreateManyData(
+        created.id,
+        input,
+        input.budgetCurrency,
+      );
+
+      if (subPrograms.length) {
+        await tx.programSubProgram.createMany({ data: subPrograms });
+      }
+      if (fundRequests.length) {
+        await tx.fundRequest.createMany({ data: fundRequests });
+      }
+
+      return tx.incident.findUniqueOrThrow({
+        where: { id: created.id },
+        include: incidentRelationInclude(),
+      });
+    });
+
+    return mapIncident(incident);
+  },
+  async updateIncident(id, input) {
+    const current = await prisma.incident.findUnique({ where: { id } });
+
+    if (!current) {
+      return undefined;
+    }
+
+    const incident = await prisma.$transaction(async (tx) => {
+      await tx.incident.update({
+        where: { id },
+        data: toIncidentUpdateData(input),
+      });
+
+      if (input.subPrograms !== undefined) {
+        await tx.programSubProgram.deleteMany({ where: { incidentId: id } });
+        const subPrograms = subProgramCreateManyData(id, input);
+
+        if (subPrograms.length) {
+          await tx.programSubProgram.createMany({ data: subPrograms });
+        }
+      }
+
+      if (input.fundRequests !== undefined) {
+        await tx.fundRequest.deleteMany({ where: { incidentId: id } });
+        const fundRequests = fundRequestCreateManyData(
+          id,
+          input,
+          input.budgetCurrency ?? current.budgetCurrency,
+        );
+
+        if (fundRequests.length) {
+          await tx.fundRequest.createMany({ data: fundRequests });
+        }
+      }
+
+      return tx.incident.findUniqueOrThrow({
+        where: { id },
+        include: incidentRelationInclude(),
+      });
+    });
+
+    return mapIncident(incident);
+  },
+  async deleteIncident(id) {
+    const existing = await prisma.incident.findUnique({ where: { id } });
+
+    if (!existing) {
+      return false;
+    }
+
+    await prisma.incident.delete({ where: { id } });
+
+    return true;
   },
   async listNeeds() {
     const needs = await prisma.needReport.findMany({
@@ -360,13 +597,31 @@ export const prismaRepository: DataRepository = {
   },
   async listResources() {
     const resources = await prisma.resource.findMany({
+      include: {
+        movements: { orderBy: { createdAt: "desc" }, take: 1 },
+      },
       orderBy: { createdAt: "desc" },
     });
 
     return resources.map(mapResource);
   },
-  async getIncidentResources() {
-    return [];
+  async getIncidentResources(id) {
+    const resources = await prisma.resource.findMany({
+      include: {
+        movements: {
+          orderBy: { createdAt: "desc" },
+          where: { incidentId: id },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      where: {
+        movements: {
+          some: { incidentId: id },
+        },
+      },
+    });
+
+    return resources.map(mapResource);
   },
   async listDeployedTeams() {
     return [];

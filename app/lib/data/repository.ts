@@ -40,12 +40,58 @@ export type CreateConceptNoteVersionInput = {
   updatedBy?: string;
 };
 
+export type IncidentSubProgramInput = {
+  id?: string;
+  name: string;
+  budgetAllocated: number;
+};
+
+export type IncidentFundRequestInput = {
+  id?: string;
+  subProgramName: string;
+  requestedByTeam: string;
+  amount: number;
+  currency?: string;
+  purpose: string;
+  status?: Incident["fundRequests"][number]["status"];
+  requestedAt?: string;
+};
+
+export type CreateIncidentInput = {
+  title: string;
+  disasterType: string;
+  severity: Incident["severity"];
+  status: Incident["status"];
+  region: string;
+  country: string;
+  state: string;
+  locationName: string;
+  latitude: number;
+  longitude: number;
+  startTime: string;
+  description: string;
+  lead?: string;
+  latestUpdate?: string;
+  budgetCurrency: string;
+  masterBudgetAmount: number;
+  createdById?: string;
+  subPrograms?: IncidentSubProgramInput[];
+  fundRequests?: IncidentFundRequestInput[];
+};
+
+export type UpdateIncidentInput = Partial<
+  Omit<CreateIncidentInput, "createdById">
+>;
+
 export type DataRepository = {
   backend: DataBackend;
   getCurrentUser(): Promise<User>;
   listUsers(): Promise<User[]>;
   listIncidents(): Promise<Incident[]>;
   getIncident(id: string): Promise<Incident | undefined>;
+  createIncident(input: CreateIncidentInput): Promise<Incident>;
+  updateIncident(id: string, input: UpdateIncidentInput): Promise<Incident | undefined>;
+  deleteIncident(id: string): Promise<boolean>;
   listNeeds(): Promise<NeedReport[]>;
   getIncidentNeeds(id: string): Promise<NeedReport[]>;
   listTasks(): Promise<ResponseTask[]>;

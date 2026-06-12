@@ -20,6 +20,15 @@ export const drizzleRepository: DataRepository = {
   async getIncident() {
     return unavailable();
   },
+  async createIncident() {
+    return unavailable();
+  },
+  async updateIncident() {
+    return unavailable();
+  },
+  async deleteIncident() {
+    return unavailable();
+  },
   async listNeeds() {
     return unavailable();
   },

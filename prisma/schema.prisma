@@ -108,7 +108,11 @@ model Incident {
   disasterType       DisasterType
   severity           Severity
   status             IncidentStatus      @default(MONITORING)
+  region             String              @default("")
+  country            String              @default("")
+  state              String              @default("")
   description        String
+  latestUpdate       String              @default("")
   latitude           Decimal             @db.Decimal(9, 6)
   longitude          Decimal             @db.Decimal(9, 6)
   locationName       String

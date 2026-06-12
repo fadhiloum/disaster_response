@@ -1,7 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { CommandLink, SecondaryLink } from "@/app/components/ui";
+import { SecondaryLink } from "@/app/components/ui";
 import { formatCurrency } from "@/app/lib/data/types";
 
 const disasterTypes = [
@@ -30,12 +31,15 @@ type SubProgramInput = {
 };
 
 export function ProgramCreationForm() {
+  const router = useRouter();
   const [currency, setCurrency] = useState("MYR");
   const [masterBudget, setMasterBudget] = useState(0);
   const [fundRequest, setFundRequest] = useState(0);
   const [fundRequestSubProgram, setFundRequestSubProgram] = useState("WASH");
   const [subPrograms, setSubPrograms] =
     useState<SubProgramInput[]>(initialSubPrograms);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const allocatedBudget = useMemo(
     () =>
@@ -67,8 +71,84 @@ export function ProgramCreationForm() {
     );
   }
 
+  async function submitProgram(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (hasBudgetIssue || saving) {
+      return;
+    }
+
+    setError("");
+    setSaving(true);
+
+    const formData = new FormData(event.currentTarget);
+    const fundRequestTeam = String(formData.get("fundRequestTeam") ?? "").trim();
+    const fundRequestPurpose = String(
+      formData.get("fundRequestPurpose") ?? "",
+    ).trim();
+
+    const response = await fetch("/api/incidents", {
+      body: JSON.stringify({
+        title: String(formData.get("title") ?? "").trim(),
+        disasterType: String(formData.get("disasterType") ?? "").trim(),
+        locationName: String(formData.get("location") ?? "").trim(),
+        region: String(formData.get("region") ?? "").trim(),
+        country: String(formData.get("country") ?? "").trim(),
+        state: String(formData.get("state") ?? "").trim(),
+        startTime: String(formData.get("startTime") ?? "").trim(),
+        severity: String(formData.get("severity") ?? "").trim(),
+        status: String(formData.get("status") ?? "").trim(),
+        lead: String(formData.get("lead") ?? "").trim(),
+        latitude: Number(formData.get("latitude")),
+        longitude: Number(formData.get("longitude")),
+        description: String(formData.get("description") ?? "").trim(),
+        budgetCurrency: currency,
+        masterBudgetAmount: masterBudget,
+        subPrograms: subPrograms
+          .filter((subProgram) => subProgram.name.trim())
+          .map((subProgram) => ({
+            name: subProgram.name.trim(),
+            budgetAllocated: Number(subProgram.allocation || 0),
+          })),
+        fundRequests:
+          fundRequest > 0 && fundRequestTeam && fundRequestPurpose
+            ? [
+                {
+                  subProgramName: fundRequestSubProgram,
+                  requestedByTeam: fundRequestTeam,
+                  amount: fundRequest,
+                  currency,
+                  purpose: fundRequestPurpose,
+                  status: "requested",
+                },
+              ]
+            : [],
+      }),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    setSaving(false);
+
+    if (!response.ok) {
+      setError(
+        typeof payload.error === "string"
+          ? payload.error
+          : "Unable to save program.",
+      );
+      return;
+    }
+
+    router.push(`/incidents/${payload.data.id}`);
+    router.refresh();
+  }
+
   return (
-    <form className="grid gap-6 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm lg:grid-cols-2">
+    <form
+      className="grid gap-6 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm lg:grid-cols-2"
+      onSubmit={submitProgram}
+    >
       <Field label="Program title">
         <input
           className="input"
@@ -336,10 +416,19 @@ export function ProgramCreationForm() {
             Save draft
           </button>
         ) : (
-          <CommandLink href="/incidents/flood-riverside">Save draft</CommandLink>
+          <button
+            className="inline-flex min-h-10 items-center justify-center rounded-md bg-[#244a9b] px-4 text-sm font-semibold text-white transition hover:bg-[#1b3976] disabled:cursor-wait disabled:opacity-70"
+            disabled={saving}
+            type="submit"
+          >
+            {saving ? "Saving" : "Save draft"}
+          </button>
         )}
         <SecondaryLink href="/incidents">Cancel</SecondaryLink>
       </div>
+      {error ? (
+        <p className="text-sm font-semibold text-red-700 lg:col-span-2">{error}</p>
+      ) : null}
     </form>
   );
 }

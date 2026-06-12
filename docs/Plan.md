@@ -44,6 +44,8 @@ working demo MVP slice:
   prisma:deploy` and seed data loaded through `npm run prisma:seed`.
 - Program records now include master budget controls, sub-program allocations,
   and fund requests that must remain within the master budget.
+- Prisma-backed program reads now preserve operational location/update fields,
+  sub-program allocations, fund requests, and resource assignments.
 - OpenAI SitRep drafting is implemented through the Responses API with required
   web search context and covered by mocked Vitest route tests.
 - The current OpenAI integration is deliberately scoped to generating editable
