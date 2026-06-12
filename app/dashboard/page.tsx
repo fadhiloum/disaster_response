@@ -1,11 +1,13 @@
 import { DashboardHome } from "@/app/components/dashboard-home";
 import { data } from "@/app/lib/data";
+import { getDisasterNews } from "@/app/lib/disaster-news";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const [
     dashboardSummary,
+    disasterNews,
     incidents,
     needReports,
     tasks,
@@ -13,6 +15,7 @@ export default async function DashboardPage() {
     partnerActivities,
   ] = await Promise.all([
     data.getDashboardSummary(),
+    getDisasterNews(),
     data.listIncidents(),
     data.listNeeds(),
     data.listTasks(),
@@ -23,6 +26,7 @@ export default async function DashboardPage() {
   return (
     <DashboardHome
       dashboardSummary={dashboardSummary}
+      disasterNews={disasterNews}
       incidents={incidents}
       needReports={needReports}
       partnerActivities={partnerActivities}
