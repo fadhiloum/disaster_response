@@ -549,18 +549,32 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+const osmWorldTiles = Array.from({ length: 4 }, (_, y) =>
+  Array.from({ length: 4 }, (_, x) => ({
+    key: `${x}-${y}`,
+    src: `https://tile.openstreetmap.org/2/${x}/${y}.png`,
+  })),
+).flat();
+
 function WorldMapBackdrop() {
   return (
     <>
-      <iframe
+      <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 h-full w-full border-0"
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        src="https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-85.0511%2C180%2C85.0511&layer=mapnik"
-        title="OpenStreetMap world map"
-      />
-      <div className="pointer-events-none absolute inset-0 bg-white/10" />
+        className="pointer-events-none absolute inset-0 grid grid-cols-4 grid-rows-4 bg-[#a9d6e2]"
+      >
+        {osmWorldTiles.map((tile) => (
+          <span
+            className="block h-full w-full bg-center bg-no-repeat"
+            key={tile.key}
+            style={{
+              backgroundImage: `url(${tile.src})`,
+              backgroundSize: "100% 100%",
+            }}
+          />
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-white/5" />
       <a
         className="absolute bottom-2 right-2 z-30 rounded bg-white/90 px-2 py-1 text-[11px] font-semibold text-zinc-600 shadow-sm"
         href="https://www.openstreetmap.org/copyright"
