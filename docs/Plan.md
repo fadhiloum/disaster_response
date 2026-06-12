@@ -17,6 +17,8 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 - Frontend: Next.js, React, TypeScript, Tailwind CSS
 - Backend: Next.js API routes or route handlers
 - Database: PostgreSQL with Prisma
+- Alternate persistence: Drizzle/D1 adapter slot retained behind the shared data repository
+- AI: OpenAI Responses API for assisted operational drafting
 - Geospatial: PostGIS-ready latitude and longitude fields for MVP, with PostGIS queries added as needed
 - Auth: NextAuth or Supabase Auth
 - Maps: Leaflet for MVP, with Mapbox as an optional upgrade
@@ -194,6 +196,7 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 ### Goals
 
 - Generate concise reports from incident data.
+- Support user-reviewed AI drafting without automatically publishing generated text.
 
 ### Work Items
 
@@ -208,14 +211,18 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
   - Next operational period priorities
 - Add text export first.
 - Add PDF export after report layout is stable.
+- Add AI-assisted draft generation from incident, needs, task, resource, team,
+  partner, and previous report context.
 - Implement API endpoints:
   - `GET /api/incidents/:id/sitreps`
   - `POST /api/incidents/:id/sitreps`
   - `GET /api/sitreps/:id/export`
+  - `POST /api/ai/incidents/:id/situation-report`
 
 ### Exit Criteria
 
 - Coordinators can create SitReps for incidents.
+- Coordinators can generate editable AI SitRep drafts.
 - SitReps can be exported as text or PDF.
 - Report content reflects current incident data.
 
@@ -270,6 +277,10 @@ Build the MVP described in `Project.md`: a web app for coordinating disaster res
 - Offline mode: useful for field responders, but should remain post-MVP unless explicitly prioritized.
 - PDF generation: should be added after SitRep content and layout are stable.
 - File uploads: attachments and photos should be scoped carefully to avoid delaying core workflows.
+- AI output governance: generated operational text must remain draft-only until
+  reviewed by an accountable coordinator.
+- OpenAI data handling: review prompt payloads against privacy policy before
+  production use.
 
 ## Suggested First Build Slice
 

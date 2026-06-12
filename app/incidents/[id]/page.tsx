@@ -15,6 +15,7 @@ import {
   formatDateTime,
   formatNumber,
 } from "@/app/lib/data";
+import { AiSitrepDraft } from "./ai-sitrep-draft";
 
 const incidentTabs = [
   { icon: "overview", id: "overview", label: "Overview" },
@@ -276,6 +277,9 @@ export default async function IncidentDetailPage({
 
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm" id="sitreps">
           <SectionHeader title="Situation Reports" />
+          <div className="mt-4">
+            <AiSitrepDraft incidentId={incident.id} />
+          </div>
           <div className="mt-4 space-y-3">
             {sitreps.length ? (
               sitreps.map((sitrep) => (
