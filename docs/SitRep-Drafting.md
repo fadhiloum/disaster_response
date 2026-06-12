@@ -2,9 +2,9 @@
 
 ## Purpose
 
-AI-assisted SitRep drafting helps coordinators turn current program data into a
-reviewable situation report draft. The feature is intended to reduce first-draft
-time, not replace human review or approval.
+AI-assisted SitRep drafting helps coordinators turn current program data and
+fresh external web context into a reviewable situation report draft. The feature
+is intended to reduce first-draft time, not replace human review or approval.
 
 The generated draft is not saved automatically. A coordinator should edit,
 verify, and submit the final SitRep through the normal operational workflow.
@@ -13,7 +13,7 @@ verify, and submit the final SitRep through the normal operational workflow.
 
 1. Open a program detail page, for example `/incidents/flood-riverside`.
 2. Go to the Situation Reports section.
-3. Click `Draft with AI`.
+3. Click `Generate with AI`.
 4. Review the generated draft in the editable text area.
 5. Edit the text as needed.
 6. Click `Save as SitRep` to create an official SitRep record from the reviewed
@@ -38,11 +38,13 @@ On each request, the route:
 1. Verifies `OPENAI_API_KEY` is configured.
 2. Loads the program through `app/lib/data`.
 3. Loads related needs, tasks, resources, teams, activities, and recent SitReps.
-4. Sends a constrained prompt to the OpenAI Responses API.
-5. Returns the generated draft text to the client.
-6. The client parses the reviewed draft into SitRep sections and posts it to
+4. Requires the OpenAI Responses API web search tool to retrieve recent external
+   context.
+5. Sends a constrained prompt to the OpenAI Responses API.
+6. Returns the generated draft text and web sources to the client.
+7. The client parses the reviewed draft into SitRep sections and posts it to
    `POST /api/incidents/:id/sitreps`.
-7. The SitRep route validates required sections and persists the report through
+8. The SitRep route validates required sections and persists the report through
    `app/lib/data`.
 
 The OpenAI client helper is `app/lib/ai/openai.ts`. It reads
@@ -59,10 +61,16 @@ The prompt includes operational program context only:
 - Affected population, open needs, resource gaps, and assigned teams.
 - Program needs, tasks, resources, deployed teams, partner activities, master
   budget, and fund requests.
+- Recent web context from official local disaster management authorities,
+  government agencies, other NGOs, IFRC/Red Cross/Crescent, OCHA/ReliefWeb, UN
+  agencies, or reputable local media.
 - Up to two previous SitReps for continuity.
 
 Avoid adding unnecessary personal data, medical details, or sensitive household
 information to program records before generating a draft.
+
+When web context is used, the UI displays the source links returned by the
+Responses API below the editable draft.
 
 ## Local Testing
 

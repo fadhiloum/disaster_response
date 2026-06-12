@@ -57,14 +57,45 @@ function mockOpenAI({
   hasKey,
   draft = "Generated SitRep draft",
   error,
+  sources = [
+    {
+      title: "Agency flood update",
+      url: "https://example.org/flood-update",
+    },
+  ],
 }: {
   hasKey: boolean;
   draft?: string;
   error?: Error;
+  sources?: Array<{ title: string; url: string }>;
 }) {
   const create = error
     ? vi.fn().mockRejectedValue(error)
-    : vi.fn().mockResolvedValue({ output_text: draft });
+    : vi.fn().mockResolvedValue({
+        output: [
+          {
+            action: {
+              sources: sources.map((source) => ({ url: source.url })),
+            },
+            type: "web_search_call",
+          },
+          {
+            content: [
+              {
+                annotations: sources.map((source) => ({
+                  title: source.title,
+                  type: "url_citation",
+                  url: source.url,
+                })),
+                text: draft,
+                type: "output_text",
+              },
+            ],
+            type: "message",
+          },
+        ],
+        output_text: draft,
+      });
   const getOpenAIClient = vi.fn(() => ({
     responses: { create },
   }));
@@ -190,6 +221,12 @@ describe("AI situation report route", () => {
         draft: "## Summary\nDraft text",
         incidentId: incident.id,
         model: "gpt-test",
+        sources: [
+          {
+            title: "Agency flood update",
+            url: "https://example.org/flood-update",
+          },
+        ],
       },
     });
     expect(data.getIncidentNeeds).toHaveBeenCalledWith(incident.id);
@@ -198,6 +235,13 @@ describe("AI situation report route", () => {
         model: "gpt-test",
         input: expect.stringContaining("Riverside Flood Response"),
         instructions: expect.stringContaining("humanitarian situation reports"),
+        tool_choice: "required",
+        tools: expect.arrayContaining([
+          expect.objectContaining({
+            search_context_size: "low",
+            type: "web_search",
+          }),
+        ]),
       }),
       expect.objectContaining({
         maxRetries: 0,

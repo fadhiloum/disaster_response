@@ -121,8 +121,12 @@ Generate simple SitReps from program data:
 * Gaps
 * Next operational period priorities
 
-The current implementation also supports AI-assisted SitRep drafting. Drafts are
-generated from program context and must be reviewed before use.
+The current implementation uses one AI-assisted SitRep generator. Drafts are
+generated from program context plus recent web context from local disaster
+management authorities, government agencies, other NGOs, IFRC/Red
+Cross/Crescent, OCHA/ReliefWeb, UN agencies, or reputable local media. Source
+links returned by the OpenAI Responses API must remain visible to reviewers, and
+drafts must be reviewed before use.
 
 ### 8. Map View
 
@@ -397,7 +401,9 @@ User, role, and organization management.
 * Partner activities can be recorded using 3W format.
 * Dashboard shows active programs, urgent needs, budgets, and open tasks.
 * Map displays programs, needs, resources, and activities.
-* SitRep can be generated and exported as text or PDF.
+* SitRep can be generated through the AI generator and exported as text or PDF.
+* AI-generated SitReps include current web context with visible source links for
+  reviewer verification.
 * App is usable on mobile and desktop.
 
 ## Nice-to-Have Features After MVP

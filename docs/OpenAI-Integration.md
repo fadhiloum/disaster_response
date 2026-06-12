@@ -8,11 +8,14 @@ report drafting.
 Implemented flow:
 
 1. User opens a program detail page.
-2. User clicks `Draft with AI` in the Situation Reports section.
+2. User clicks `Generate SitRep` at the top of the page or `Generate with AI`
+   in the Situation Reports section.
 3. The client calls `POST /api/ai/incidents/[id]/situation-report`.
 4. The route loads program context through the shared data repository.
-5. The route calls the OpenAI Responses API.
-6. The response is returned as editable draft text.
+5. The route requires the OpenAI Responses API web search tool to fetch recent
+   external context from authorities, other NGOs, UN/IFRC-style sources, and
+   reputable local reporting.
+6. The response is returned as editable draft text with source links.
 7. After review, the coordinator can save the draft as a SitRep through
    `POST /api/incidents/[id]/sitreps`.
 
@@ -51,13 +54,17 @@ Rules:
   - Server-only route for SitRep drafting.
   - Loads program, needs, tasks, resources, teams, partner activities, budget
     controls, and previous reports.
+  - Requires a web search call and asks the model to prioritize official local
+    disaster management authorities, government agencies, NGOs, IFRC/Red
+    Cross/Crescent, OCHA/ReliefWeb, UN agencies, and reputable local media.
   - Sends a constrained operational prompt to the Responses API.
-  - Returns `{ data: { draft, incidentId, model } }`.
+  - Returns `{ data: { draft, incidentId, model, sources } }`.
 
 - `app/incidents/[id]/ai-sitrep-draft.tsx`
   - Client component that calls the route.
   - Shows loading and error states.
   - Displays the generated draft in an editable textarea.
+  - Displays web sources returned by the API as clickable links.
   - Saves reviewed drafts through the SitRep POST route.
 
 - `app/incidents/[id]/page.tsx`
@@ -76,7 +83,13 @@ Success response:
   "data": {
     "draft": "## Summary\n...",
     "incidentId": "flood-riverside",
-    "model": "gpt-5.5"
+    "model": "gpt-5.5",
+    "sources": [
+      {
+        "title": "Agency update",
+        "url": "https://example.org/update"
+      }
+    ]
   }
 }
 ```
@@ -122,6 +135,9 @@ The current prompt includes operational program context:
 - Assigned resources and deployed teams.
 - Partner 3W activities.
 - Master budget and current fund requests.
+- Recent web context from authorities, other NGOs, UN/IFRC-style sources, and
+  reputable local reporting. The UI must keep returned source links visible when
+  web context is shown.
 - Up to two previous SitReps.
 
 Before production use, review this payload against the organization privacy
@@ -141,6 +157,8 @@ Recommended production hardening:
 - Add an approval workflow before saving generated SitReps.
 - Add prompt and output length limits.
 - Add a model fallback or user-facing retry state for transient API failures.
+- Review source allowlisting if production policy requires only approved
+  authority or partner domains.
 - Add tests that mock the OpenAI client rather than calling the live API.
 
 ## Future Extensions
@@ -149,6 +167,7 @@ Useful next AI features:
 
 - Draft concept-note sections from program data.
 - Summarize the latest program changes.
+- Store reviewed web-source citations with finalized SitReps.
 - Recommend priority actions from open needs, tasks, and inventory.
 - Match resource inventory to reported needs.
 - Flag duplicate or conflicting needs reports.

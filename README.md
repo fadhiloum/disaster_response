@@ -15,7 +15,8 @@ and situation reports during emergency response operations.
 - Resource inventory view
 - Full operational map view
 - SitRep list, preview, and text export endpoint
-- AI-assisted SitRep drafting through the OpenAI Responses API
+- AI-assisted SitRep drafting through the OpenAI Responses API with live web
+  context and visible source links
 - Admin view for users, roles, and organizations
 - Demo-backed API routes matching the MVP contract
 - Shared data repository with demo, Prisma, and Drizzle backend slots
@@ -75,8 +76,10 @@ Next persistence tasks:
 ## OpenAI Notes
 
 Set `OPENAI_API_KEY` and optionally `OPENAI_MODEL` to enable AI-assisted SitRep
-drafting. The key is used only in server routes and must not be exposed to the
-browser.
+drafting. The generator uses the Responses API web search tool to include recent
+external context from authorities, NGOs, UN/IFRC-style sources, and reputable
+local reporting. The key is used only in server routes and must not be exposed to
+the browser.
 
 See `docs/OpenAI-Integration.md` for endpoint behavior, local checks, payload
 details, and production guardrails. See `docs/SitRep-Drafting.md` for the

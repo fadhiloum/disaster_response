@@ -97,7 +97,7 @@ export default async function IncidentDetailPage({
               Export Concept Note
             </CommandLink>
             <CommandLink href="/deployment">Manage Deployment</CommandLink>
-            <CommandLink href="/sitreps">Generate SitRep</CommandLink>
+            <CommandLink href="#sitreps">Generate SitRep</CommandLink>
             <CommandLink href="/map">Open map</CommandLink>
           </div>
         </header>
