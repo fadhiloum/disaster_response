@@ -37,11 +37,15 @@ function mockDataRepository(overrides: Partial<typeof baseData> = {}) {
 function mockOpenAI({
   hasKey,
   draft = "Generated SitRep draft",
+  error,
 }: {
   hasKey: boolean;
   draft?: string;
+  error?: Error;
 }) {
-  const create = vi.fn().mockResolvedValue({ output_text: draft });
+  const create = error
+    ? vi.fn().mockRejectedValue(error)
+    : vi.fn().mockResolvedValue({ output_text: draft });
   const getOpenAIClient = vi.fn(() => ({
     responses: { create },
   }));
@@ -50,6 +54,7 @@ function mockOpenAI({
     getOpenAIClient,
     hasOpenAIKey: () => hasKey,
     openaiModel: "gpt-test",
+    openaiRequestTimeoutMs: 8000,
   }));
 
   return { create, getOpenAIClient };
@@ -175,6 +180,32 @@ describe("AI situation report route", () => {
         input: expect.stringContaining("Riverside Flood Response"),
         instructions: expect.stringContaining("humanitarian situation reports"),
       }),
+      expect.objectContaining({
+        maxRetries: 0,
+        timeout: 8000,
+      }),
     );
+  });
+
+  it("returns 504 when the OpenAI request times out", async () => {
+    mockDataRepository();
+    mockOpenAI({
+      hasKey: true,
+      error: Object.assign(new Error("Request timed out."), {
+        name: "APIConnectionTimeoutError",
+      }),
+    });
+    mockAuth();
+    const { POST } = await loadRoute();
+
+    const response = await POST(new Request("http://localhost"), {
+      params: Promise.resolve({ id: incident.id }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(504);
+    expect(payload).toEqual({
+      error: "OpenAI request timed out. Please try again.",
+    });
   });
 });

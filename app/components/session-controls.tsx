@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { User } from "@/app/lib/data";
+import type { User } from "@/app/lib/data/types";
 
 export function SessionControls({
   currentUser,

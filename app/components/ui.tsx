@@ -4,7 +4,7 @@ import type {
   NeedStatus,
   Severity,
   TaskStatus,
-} from "@/app/lib/data";
+} from "@/app/lib/data/types";
 
 type Tone = "red" | "amber" | "green" | "blue" | "gray" | "violet";
 

@@ -3,8 +3,23 @@ import {
   getOpenAIClient,
   hasOpenAIKey,
   openaiModel,
+  openaiRequestTimeoutMs,
 } from "@/app/lib/ai/openai";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+
+export const runtime = "nodejs";
+
+function isTimeoutError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return (
+    error.name.includes("Timeout") ||
+    error.name === "AbortError" ||
+    error.message.toLowerCase().includes("timeout")
+  );
+}
 
 export async function POST(
   _request: Request,
@@ -40,55 +55,79 @@ export async function POST(
       data.getIncidentSitreps(incident.id),
     ]);
 
-  const response = await getOpenAIClient().responses.create({
-    model: openaiModel,
-    instructions:
-      "You draft concise humanitarian situation reports. Use only the supplied incident facts. If a value is unknown, say it is to be confirmed. Keep the tone operational, neutral, and suitable for responders.",
-    input: [
-      "Draft a situation report with these headings:",
-      "Summary",
-      "Current impact",
-      "Priority needs",
-      "Response actions",
-      "Gaps",
-      "Next operational period priorities",
-      "",
-      "Incident context:",
-      JSON.stringify(
-        {
-          incident: {
-            title: incident.title,
-            disasterType: incident.disasterType,
-            severity: incident.severity,
-            status: incident.status,
-            location: {
-              name: incident.locationName,
-              state: incident.state,
-              country: incident.country,
-              latitude: incident.latitude,
-              longitude: incident.longitude,
+  let response;
+
+  try {
+    response = await getOpenAIClient().responses.create(
+      {
+        model: openaiModel,
+        instructions:
+          "You draft concise humanitarian situation reports. Use only the supplied incident facts. If a value is unknown, say it is to be confirmed. Keep the tone operational, neutral, and suitable for responders.",
+        input: [
+          "Draft a situation report with these headings:",
+          "Summary",
+          "Current impact",
+          "Priority needs",
+          "Response actions",
+          "Gaps",
+          "Next operational period priorities",
+          "",
+          "Incident context:",
+          JSON.stringify(
+            {
+              incident: {
+                title: incident.title,
+                disasterType: incident.disasterType,
+                severity: incident.severity,
+                status: incident.status,
+                location: {
+                  name: incident.locationName,
+                  state: incident.state,
+                  country: incident.country,
+                  latitude: incident.latitude,
+                  longitude: incident.longitude,
+                },
+                affectedPeople: formatNumber(incident.affectedPeople),
+                openNeeds: incident.openNeeds,
+                resourceGaps: incident.resourceGaps,
+                assignedTeams: incident.assignedTeams,
+                started: formatDateTime(incident.startTime),
+                lead: incident.lead,
+                description: incident.description,
+                latestUpdate: incident.latestUpdate,
+              },
+              needs,
+              tasks,
+              resources,
+              teams,
+              activities,
+              previousReports: sitreps.slice(0, 2),
             },
-            affectedPeople: formatNumber(incident.affectedPeople),
-            openNeeds: incident.openNeeds,
-            resourceGaps: incident.resourceGaps,
-            assignedTeams: incident.assignedTeams,
-            started: formatDateTime(incident.startTime),
-            lead: incident.lead,
-            description: incident.description,
-            latestUpdate: incident.latestUpdate,
-          },
-          needs,
-          tasks,
-          resources,
-          teams,
-          activities,
-          previousReports: sitreps.slice(0, 2),
-        },
-        null,
-        2,
-      ),
-    ].join("\n"),
-  });
+            null,
+            2,
+          ),
+        ].join("\n"),
+      },
+      {
+        maxRetries: 0,
+        timeout: Number.isFinite(openaiRequestTimeoutMs)
+          ? openaiRequestTimeoutMs
+          : 8000,
+      },
+    );
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      return Response.json(
+        { error: "OpenAI request timed out. Please try again." },
+        { status: 504 },
+      );
+    }
+
+    return Response.json(
+      { error: "Unable to generate SitRep draft." },
+      { status: 502 },
+    );
+  }
 
   return Response.json({
     data: {
