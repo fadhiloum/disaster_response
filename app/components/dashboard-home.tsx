@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppShell } from "@/app/components/app-shell";
+import { NewDisasters } from "@/app/components/new-disasters";
 import { OpsMap } from "@/app/components/ops-map";
 import {
   CommandLink,
@@ -19,9 +20,11 @@ import {
   type ResponseTask,
 } from "@/app/lib/data/types";
 import type { DashboardSummary } from "@/app/lib/data/repository";
+import type { DisasterNewsFeed } from "@/app/lib/disaster-news";
 
 export function DashboardHome({
   dashboardSummary,
+  disasterNews,
   incidents,
   needReports,
   partnerActivities,
@@ -29,6 +32,7 @@ export function DashboardHome({
   tasks,
 }: {
   dashboardSummary: DashboardSummary;
+  disasterNews: DisasterNewsFeed;
   incidents: Incident[];
   needReports: NeedReport[];
   partnerActivities: PartnerActivity[];
@@ -94,6 +98,8 @@ export function DashboardHome({
             value={dashboardSummary.resourceGaps.toString()}
           />
         </section>
+
+        <NewDisasters initialFeed={disasterNews} />
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
           <OpsMap compact incidents={incidents} />

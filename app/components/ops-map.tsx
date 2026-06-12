@@ -42,7 +42,7 @@ export function OpsMap({
         </div>
       </div>
 
-      <div className={`relative ${compact ? "h-[330px]" : "h-[560px]"} overflow-hidden bg-[#cfe2ea]`}>
+      <div className={`relative ${compact ? "h-[330px]" : "h-[560px]"} overflow-hidden bg-[#dbeafe]`}>
         <WorldMapBackdrop />
 
         {visibleIncidents.map((incident) => {
@@ -110,8 +110,15 @@ function MapStat({ label, value }: { label: string; value: string }) {
 }
 
 function projectIncident(incident: Incident): React.CSSProperties {
+  const latitude = Math.max(Math.min(incident.latitude, 85.0511), -85.0511);
+  const latitudeRadians = (latitude * Math.PI) / 180;
   const left = ((incident.longitude + 180) / 360) * 100;
-  const top = ((90 - incident.latitude) / 180) * 100;
+  const top =
+    ((1 -
+      Math.log(Math.tan(latitudeRadians) + 1 / Math.cos(latitudeRadians)) /
+        Math.PI) /
+      2) *
+    100;
 
   return {
     left: `${left}%`,
@@ -121,39 +128,24 @@ function projectIncident(incident: Incident): React.CSSProperties {
 
 function WorldMapBackdrop() {
   return (
-    <svg
-      aria-hidden="true"
-      className="absolute inset-0 h-full w-full"
-      preserveAspectRatio="none"
-      viewBox="0 0 1000 500"
-    >
-      <defs>
-        <pattern height="50" id="grid" patternUnits="userSpaceOnUse" width="50">
-          <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#ffffff" strokeOpacity="0.32" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <rect fill="#cfe2ea" height="500" width="1000" />
-      <rect fill="url(#grid)" height="500" width="1000" />
-      <g fill="none" opacity="0.28" stroke="#6b8c9b" strokeWidth="1">
-        <path d="M0 250 H1000" />
-        <path d="M500 0 V500" />
-        <path d="M250 0 V500" />
-        <path d="M750 0 V500" />
-      </g>
-      <g fill="#d9d2ba" stroke="#a8a089" strokeWidth="2">
-        <path d="M96 122 L154 84 L238 82 L298 118 L330 176 L294 230 L228 232 L202 282 L142 278 L106 230 L62 204 L58 154 Z" />
-        <path d="M280 255 L330 286 L344 356 L312 438 L262 470 L232 410 L246 334 Z" />
-        <path d="M462 128 L518 112 L570 134 L564 178 L514 192 L454 174 Z" />
-        <path d="M496 204 L568 190 L632 236 L628 310 L590 404 L522 374 L478 304 Z" />
-        <path d="M586 126 L678 90 L806 118 L916 174 L902 244 L814 236 L760 282 L672 258 L610 214 Z" />
-        <path d="M774 318 L860 330 L902 384 L860 430 L778 408 L746 356 Z" />
-        <path d="M406 70 L470 40 L534 60 L506 98 L440 106 Z" />
-      </g>
-      <g fill="#bfcf98" opacity="0.72">
-        <path d="M620 170 L706 146 L770 164 L746 210 L660 216 Z" />
-        <path d="M520 238 L584 226 L604 292 L560 354 L514 322 Z" />
-        <path d="M120 152 L210 112 L286 146 L252 204 L150 212 Z" />
-      </g>
-    </svg>
+    <>
+      <iframe
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 h-full w-full border-0"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+        src="https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-85.0511%2C180%2C85.0511&layer=mapnik"
+        title="OpenStreetMap world map"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-white/10" />
+      <a
+        className="absolute bottom-2 right-2 z-30 rounded bg-white/90 px-2 py-1 text-[11px] font-semibold text-zinc-600 shadow-sm"
+        href="https://www.openstreetmap.org/copyright"
+        rel="noreferrer"
+        target="_blank"
+      >
+        &copy; OpenStreetMap contributors
+      </a>
+    </>
   );
 }
