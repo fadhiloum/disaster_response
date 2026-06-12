@@ -1,5 +1,7 @@
 export type {
   ConceptNote,
+  AuditEntityType,
+  AuditLog,
   DeployedTeam,
   FundRequest,
   FundRequestStatus,
@@ -14,6 +16,7 @@ export type {
   Role,
   Severity,
   SituationReport,
+  SituationReportStatus,
   TaskStatus,
   User,
 } from "@/app/lib/demo-data";

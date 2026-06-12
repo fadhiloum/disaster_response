@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../audit";
 
 export async function PATCH(
   request: Request,
@@ -31,6 +32,15 @@ export async function PATCH(
     latitude: payload.latitude !== undefined ? Number(payload.latitude) : undefined,
     longitude:
       payload.longitude !== undefined ? Number(payload.longitude) : undefined,
+  });
+  await recordAudit({
+    action: "update",
+    actor: auth.user,
+    after: updatedTask ?? task,
+    before: task,
+    entityId: id,
+    entityType: "task",
+    summary: `Updated task ${task.title}`,
   });
 
   return Response.json({

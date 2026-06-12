@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../audit";
 
 export async function PATCH(
   request: Request,
@@ -34,6 +35,15 @@ export async function PATCH(
     warehouseLocation: payload.warehouseLocation,
     receivedAt: payload.receivedAt,
     expiryDate: payload.expiryDate,
+  });
+  await recordAudit({
+    action: "update",
+    actor: auth.user,
+    after: updatedResource ?? resource,
+    before: resource,
+    entityId: id,
+    entityType: "resource",
+    summary: `Updated resource ${resource.name}`,
   });
 
   return Response.json({

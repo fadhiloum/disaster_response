@@ -61,6 +61,13 @@ function mockDataRepository(
 ) {
   const data = {
     backend: "demo",
+    createAuditLog: vi.fn(async (input) => ({
+      ...input,
+      id: "audit-incident",
+      before: null,
+      after: null,
+      createdAt: "2026-06-12T05:00:00.000Z",
+    })),
     listIncidents: vi.fn(async () => [incident]),
     getIncident: vi.fn(async () => options.existingIncident),
     createIncident: vi.fn(async () => ({

@@ -2,7 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { NeedStatus, Role, TaskStatus } from "@/app/lib/data/types";
+import type {
+  NeedStatus,
+  Role,
+  SituationReportStatus,
+  TaskStatus,
+} from "@/app/lib/data/types";
 
 type WorkflowStatus = {
   tone: "success" | "error";
@@ -55,6 +60,13 @@ const taskStatusOptions = [
   { value: "blocked", label: "Blocked" },
   { value: "done", label: "Done" },
 ] satisfies Array<{ value: TaskStatus; label: string }>;
+
+const sitrepStatusOptions = [
+  { value: "draft", label: "Draft" },
+  { value: "submitted", label: "Submitted" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+] satisfies Array<{ value: SituationReportStatus; label: string }>;
 
 export function NeedSubmissionForm({
   currentUserName,
@@ -632,6 +644,101 @@ export function TaskStatusControl({
       <SubmitButton disabled={isSubmitting}>
         {isSubmitting ? "Updating..." : "Update"}
       </SubmitButton>
+      <StatusMessage status={status} />
+    </form>
+  );
+}
+
+export function SitrepStatusControl({
+  currentStatus,
+  currentUserRole,
+  reviewComment,
+  sitrepId,
+}: {
+  currentStatus: SituationReportStatus;
+  currentUserRole: Role | null;
+  reviewComment: string | null;
+  sitrepId: string;
+}) {
+  const router = useRouter();
+  const [statusValue, setStatusValue] =
+    useState<SituationReportStatus>(currentStatus);
+  const [comment, setComment] = useState(reviewComment ?? "");
+  const [status, setStatus] = useState<WorkflowStatus | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const canReview = hasAnyRole(currentUserRole, ["Admin", "Coordinator"]);
+
+  if (!canReview) {
+    return null;
+  }
+
+  async function updateSitrepStatus(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setStatus(null);
+
+    const response = await fetch(`/api/sitreps/${sitrepId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        status: statusValue,
+        reviewComment: comment.trim(),
+      }),
+    });
+
+    setIsSubmitting(false);
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      setStatus({
+        tone: "error",
+        message: payload?.error ?? "Could not update SitRep status.",
+      });
+      return;
+    }
+
+    setStatus({ tone: "success", message: "SitRep status updated." });
+    router.refresh();
+  }
+
+  return (
+    <form className="mt-4 grid gap-3" onSubmit={updateSitrepStatus}>
+      <div className="grid gap-3 md:grid-cols-[minmax(160px,0.35fr)_minmax(0,1fr)_auto] md:items-end">
+        <label>
+          <span className="text-xs font-semibold uppercase text-zinc-500">
+            Review status
+          </span>
+          <select
+            className="input mt-2"
+            disabled={isSubmitting}
+            onChange={(event) =>
+              setStatusValue(event.target.value as SituationReportStatus)
+            }
+            value={statusValue}
+          >
+            {sitrepStatusOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="text-xs font-semibold uppercase text-zinc-500">
+            Review comment
+          </span>
+          <input
+            className="input mt-2"
+            disabled={isSubmitting}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="Optional reviewer note"
+            value={comment}
+          />
+        </label>
+        <SubmitButton disabled={isSubmitting}>
+          {isSubmitting ? "Updating..." : "Update"}
+        </SubmitButton>
+      </div>
       <StatusMessage status={status} />
     </form>
   );

@@ -13,6 +13,35 @@ export type TaskStatus = "todo" | "in progress" | "blocked" | "done";
 
 export type Severity = "low" | "moderate" | "high" | "critical";
 
+export type SituationReportStatus =
+  | "draft"
+  | "submitted"
+  | "approved"
+  | "rejected";
+
+export type AuditEntityType =
+  | "program"
+  | "need"
+  | "task"
+  | "resource"
+  | "resource_commitment"
+  | "partner_activity"
+  | "sitrep"
+  | "concept_note";
+
+export type AuditLog = {
+  id: string;
+  actorId: string | null;
+  actorName: string;
+  action: string;
+  entityType: AuditEntityType;
+  entityId: string;
+  summary: string;
+  before: string | null;
+  after: string | null;
+  createdAt: string;
+};
+
 export type ProgramSubProgram = {
   id: string;
   name: string;
@@ -127,6 +156,8 @@ export type SituationReport = {
   id: string;
   incidentId: string;
   reportingPeriod: string;
+  status: SituationReportStatus;
+  revision: number;
   summary: string;
   impact: string;
   priorityNeeds: string;
@@ -135,6 +166,11 @@ export type SituationReport = {
   nextPriorities: string;
   createdBy: string;
   createdAt: string;
+  updatedAt: string;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  reviewComment: string | null;
 };
 
 export type ConceptNote = {
@@ -628,10 +664,19 @@ export const situationReports: SituationReport[] = [
       "Stabilize Zone C shelter supply, expand rapid assessment coverage, and update public guidance.",
     createdBy: "Maya Chen",
     createdAt: "2026-06-11T09:20:00+07:00",
+    updatedAt: "2026-06-11T09:20:00+07:00",
+    status: "approved",
+    revision: 1,
+    submittedAt: "2026-06-11T09:45:00+07:00",
+    reviewedAt: "2026-06-11T10:15:00+07:00",
+    reviewedBy: "Maya Chen",
+    reviewComment: "Approved for partner circulation.",
   },
 ];
 
 export const conceptNotes: ConceptNote[] = [];
+
+export const auditLogs: AuditLog[] = [];
 
 export function getIncident(id: string) {
   return incidents.find((incident) => incident.id === id);

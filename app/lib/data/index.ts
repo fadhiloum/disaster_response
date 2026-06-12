@@ -148,6 +148,15 @@ export const data: DataRepository = {
   async createSituationReport(input) {
     return (await getRepository()).createSituationReport(input);
   },
+  async updateSituationReport(id, input) {
+    return (await getRepository()).updateSituationReport(id, input);
+  },
+  async listAuditLogs(entity) {
+    return (await getRepository()).listAuditLogs(entity);
+  },
+  async createAuditLog(input) {
+    return (await getRepository()).createAuditLog(input);
+  },
   async getIncidentConceptNote(id) {
     return (await getRepository()).getIncidentConceptNote(id);
   },
@@ -167,6 +176,8 @@ export const data: DataRepository = {
 
 export type { DataBackend, DataRepository } from "./repository";
 export type {
+  AuditEntityType,
+  AuditLog,
   ConceptNote,
   DeployedTeam,
   FundRequest,

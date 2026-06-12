@@ -1,5 +1,6 @@
 import { data } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../audit";
 
 export async function PATCH(
   request: Request,
@@ -39,6 +40,15 @@ export async function PATCH(
       payload.status === "verified" || payload.status === "assigned"
         ? auth.user.id
         : payload.verifiedById,
+  });
+  await recordAudit({
+    action: "update",
+    actor: auth.user,
+    after: updatedNeed ?? need,
+    before: need,
+    entityId: id,
+    entityType: "need",
+    summary: `Updated need ${need.category}`,
   });
 
   return Response.json({

@@ -72,7 +72,7 @@ working demo MVP slice:
   `npm run lint`, and `npm run vercel-build`.
 
 Remaining MVP work is mostly hardening: production auth provider integration,
-form validation depth, richer tests, audit logs, approval workflows, and
+form validation depth, richer tests, approval workflows, map controls, and
 deployment environment setup.
 
 ## Phase 1: Project Foundation
@@ -129,10 +129,11 @@ Status: partially complete.
 - Completed: Add admin view showing demo users, roles, and organizations.
 - Completed: Add shared server-side auth helpers.
 - Completed: Add role checks for mutation routes.
+- Completed: Add mutation audit logs with actor, action, entity, timestamp,
+  and before/after summaries for core operational writes.
 - Remaining: Replace demo cookie auth with a production authentication provider.
 - Remaining: Add route-level protection for private pages.
 - Remaining: Hide or disable unavailable UI actions by role.
-- Remaining: Add audit logs that record the authenticated actor for mutations.
 
 ### Exit Criteria
 
@@ -340,8 +341,10 @@ Status: started.
 - Completed: Add initial Vitest setup and route tests for OpenAI SitRep
   drafting.
 - Completed: Add contributor guide in `AGENTS.md`.
+- Completed: Surface recent audit history for operational updates and SitReps
+  on the program detail page.
 - Remaining: Add audit-friendly timestamps and created-by fields consistently
-  across mutation paths.
+  across any remaining non-core mutation paths.
 - Remaining: Add error states, empty states, loading states, and form validation
   feedback across all workflows.
 - Remaining: Add tests for high-risk API routes, repository adapters, and

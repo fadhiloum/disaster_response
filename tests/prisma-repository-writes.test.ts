@@ -51,6 +51,42 @@ const incidentRecord = {
   ],
 };
 
+const sitrepRecord = {
+  id: "sitrep-new",
+  incidentId: incidentRecord.id,
+  reportingPeriodStart: new Date("2026-06-12T03:00:00.000Z"),
+  reportingPeriodEnd: new Date("2026-06-12T03:00:00.000Z"),
+  summary: "Initial operational summary.",
+  impact: "18,400 people affected.",
+  priorityNeeds: "Water and shelter kits.",
+  responseActions: "Teams deployed.",
+  gaps: "Access constraints remain.",
+  nextPriorities: "Stabilize Zone C.",
+  status: "draft",
+  revision: 1,
+  createdById: user.id,
+  createdBy: user,
+  createdAt: new Date("2026-06-12T04:00:00.000Z"),
+  updatedAt: new Date("2026-06-12T04:00:00.000Z"),
+  submittedAt: null,
+  reviewedAt: null,
+  reviewedBy: null,
+  reviewComment: null,
+};
+
+const auditLogRecord = {
+  id: "audit-1",
+  actorId: user.id,
+  actorName: user.name,
+  action: "status",
+  entityType: "sitrep",
+  entityId: sitrepRecord.id,
+  summary: "Changed SitRep status from draft to approved",
+  before: "{\"status\":\"draft\"}",
+  after: "{\"status\":\"approved\"}",
+  createdAt: new Date("2026-06-12T05:00:00.000Z"),
+};
+
 const createInput: CreateIncidentInput = {
   title: "New Flood Response",
   disasterType: "flood",
@@ -109,6 +145,27 @@ function createPrismaMock() {
         async () => incidentRecord,
       ),
       delete: vi.fn(async () => incidentRecord),
+    },
+    situationReport: {
+      findUnique: vi.fn(async () => sitrepRecord),
+      update: vi.fn(async ({ data }) => ({
+        ...sitrepRecord,
+        ...data,
+        revision:
+          typeof data.revision === "object" && "increment" in data.revision
+            ? sitrepRecord.revision + data.revision.increment
+            : sitrepRecord.revision,
+        updatedAt: new Date("2026-06-12T05:00:00.000Z"),
+      })),
+    },
+    auditLog: {
+      create: vi.fn(async ({ data }) => ({
+        ...auditLogRecord,
+        ...data,
+        id: auditLogRecord.id,
+        createdAt: auditLogRecord.createdAt,
+      })),
+      findMany: vi.fn(async () => [auditLogRecord]),
     },
     $transaction: vi.fn(async (callback: (transaction: typeof tx) => unknown) =>
       callback(tx),
@@ -271,5 +328,69 @@ describe("Prisma repository writes", () => {
 
     expect(deleted).toBe(false);
     expect(prisma.incident.delete).not.toHaveBeenCalled();
+  });
+
+  it("updates SitRep lifecycle fields and increments revision on content change", async () => {
+    const { prisma } = createPrismaMock();
+    const repository = await loadRepository();
+
+    const sitrep = await repository.updateSituationReport(sitrepRecord.id, {
+      summary: "Updated operational summary.",
+      status: "approved",
+      reviewComment: "Approved for partner circulation.",
+      reviewedBy: "Maya Chen",
+    });
+
+    expect(prisma.situationReport.update).toHaveBeenCalledWith({
+      where: { id: sitrepRecord.id },
+      data: expect.objectContaining({
+        summary: "Updated operational summary.",
+        status: "approved",
+        revision: { increment: 1 },
+        reviewComment: "Approved for partner circulation.",
+        reviewedBy: "Maya Chen",
+      }),
+      include: { createdBy: true },
+    });
+    expect(sitrep).toMatchObject({
+      id: sitrepRecord.id,
+      summary: "Updated operational summary.",
+      status: "approved",
+      revision: 2,
+      reviewComment: "Approved for partner circulation.",
+    });
+  });
+
+  it("creates and lists audit logs with serialized before and after values", async () => {
+    const { prisma } = createPrismaMock();
+    const repository = await loadRepository();
+
+    const audit = await repository.createAuditLog({
+      action: "status",
+      actorId: user.id,
+      actorName: user.name,
+      entityType: "sitrep",
+      entityId: sitrepRecord.id,
+      summary: "Changed SitRep status from draft to approved",
+      before: { status: "draft" },
+      after: { status: "approved" },
+    });
+    const audits = await repository.listAuditLogs({
+      entityType: "sitrep",
+      entityId: sitrepRecord.id,
+    });
+
+    expect(prisma.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        before: "{\"status\":\"draft\"}",
+        after: "{\"status\":\"approved\"}",
+      }),
+    });
+    expect(prisma.auditLog.findMany).toHaveBeenCalledWith({
+      where: { entityType: "sitrep", entityId: sitrepRecord.id },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(audit).toMatchObject({ id: auditLogRecord.id, entityType: "sitrep" });
+    expect(audits).toHaveLength(1);
   });
 });

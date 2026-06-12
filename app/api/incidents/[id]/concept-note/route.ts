@@ -7,6 +7,7 @@ import {
   type NeedReport,
 } from "@/app/lib/data";
 import { isAuthResponse, requireRole } from "@/app/lib/auth";
+import { recordAudit } from "../../../audit";
 
 const docxContentType =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -203,6 +204,14 @@ export async function POST(
     incidentId: id,
     content,
     updatedBy: auth.user.name,
+  });
+  await recordAudit({
+    action: "create_version",
+    actor: auth.user,
+    after: note,
+    entityId: note.id,
+    entityType: "concept_note",
+    summary: `Saved concept note version ${note.version}`,
   });
 
   return Response.json({ data: note, mode: data.backend }, { status: 200 });
