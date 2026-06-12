@@ -19,6 +19,19 @@ export type DashboardSummary = {
 
 export type DataBackend = "demo" | "prisma" | "drizzle";
 
+export type CreateSituationReportInput = {
+  incidentId: string;
+  reportingPeriod?: string;
+  reportingPeriodStart?: string;
+  reportingPeriodEnd?: string;
+  summary: string;
+  impact: string;
+  priorityNeeds: string;
+  responseActions: string;
+  gaps: string;
+  nextPriorities: string;
+};
+
 export type DataRepository = {
   backend: DataBackend;
   getCurrentUser(): Promise<User>;
@@ -37,6 +50,8 @@ export type DataRepository = {
   getIncidentActivities(id: string): Promise<PartnerActivity[]>;
   listSituationReports(): Promise<SituationReport[]>;
   getIncidentSitreps(id: string): Promise<SituationReport[]>;
+  createSituationReport(
+    input: CreateSituationReportInput,
+  ): Promise<SituationReport>;
   getDashboardSummary(): Promise<DashboardSummary>;
 };
-

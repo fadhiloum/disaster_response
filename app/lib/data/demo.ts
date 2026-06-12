@@ -69,8 +69,34 @@ export const demoRepository: DataRepository = {
   async getIncidentSitreps(id) {
     return getIncidentSitreps(id);
   },
+  async createSituationReport(input) {
+    const report = {
+      id: crypto.randomUUID(),
+      incidentId: input.incidentId,
+      reportingPeriod:
+        input.reportingPeriod ??
+        `${new Date().toLocaleString("en-GB", {
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          month: "short",
+          year: "numeric",
+        })} draft`,
+      summary: input.summary,
+      impact: input.impact,
+      priorityNeeds: input.priorityNeeds,
+      responseActions: input.responseActions,
+      gaps: input.gaps,
+      nextPriorities: input.nextPriorities,
+      createdBy: currentUser.name,
+      createdAt: new Date().toISOString(),
+    };
+
+    situationReports.unshift(report);
+
+    return report;
+  },
   async getDashboardSummary() {
     return dashboardSummary;
   },
 };
-

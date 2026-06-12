@@ -1,4 +1,5 @@
 import { data } from "@/app/lib/data";
+import { isAuthResponse, requireRole } from "@/app/lib/auth";
 
 export async function GET(
   _request: Request,
@@ -17,6 +18,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const auth = await requireRole(["Admin", "Coordinator"]);
+
+  if (isAuthResponse(auth)) {
+    return auth;
+  }
+
   const { id } = await params;
 
   if (!(await data.getIncident(id))) {

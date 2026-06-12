@@ -15,7 +15,9 @@ verify, and submit the final SitRep through the normal operational workflow.
 2. Go to the Situation Reports section.
 3. Click `Draft with AI`.
 4. Review the generated draft in the editable text area.
-5. Copy or adapt the reviewed text into the final SitRep process.
+5. Edit the text as needed.
+6. Click `Save as SitRep` to create an official SitRep record from the reviewed
+   draft.
 
 The client component for this workflow is
 `app/incidents/[id]/ai-sitrep-draft.tsx`.
@@ -38,6 +40,10 @@ On each request, the route:
 3. Loads related needs, tasks, resources, teams, activities, and recent SitReps.
 4. Sends a constrained prompt to the OpenAI Responses API.
 5. Returns the generated draft text to the client.
+6. The client parses the reviewed draft into SitRep sections and posts it to
+   `POST /api/incidents/:id/sitreps`.
+7. The SitRep route validates required sections and persists the report through
+   `app/lib/data`.
 
 The OpenAI client helper is `app/lib/ai/openai.ts`. It reads
 `OPENAI_API_KEY` and uses `OPENAI_MODEL`, defaulting to `gpt-5.5` when the model
@@ -111,6 +117,8 @@ npm run test
 
 The route tests are in `tests/ai-sitrep-route.test.ts`. They mock the OpenAI
 client and verify missing-key, missing-incident, and successful-draft behavior.
+`tests/sitrep-route.test.ts` covers reviewed draft persistence through the
+SitRep POST route.
 
 ## Production Notes
 

@@ -1,4 +1,5 @@
 import { data } from "@/app/lib/data";
+import { isAuthResponse, requireRole } from "@/app/lib/auth";
 
 export async function GET(
   _request: Request,
@@ -18,6 +19,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const auth = await requireRole(["Admin", "Coordinator"]);
+
+  if (isAuthResponse(auth)) {
+    return auth;
+  }
+
   const { id } = await params;
   const incident = await data.getIncident(id);
 
@@ -41,6 +48,12 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const auth = await requireRole(["Admin", "Coordinator"]);
+
+  if (isAuthResponse(auth)) {
+    return auth;
+  }
+
   const { id } = await params;
   const incident = await data.getIncident(id);
 

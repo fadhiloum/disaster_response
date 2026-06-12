@@ -79,3 +79,19 @@ browser.
 See `docs/OpenAI-Integration.md` for endpoint behavior, local checks, payload
 details, and production guardrails. See `docs/SitRep-Drafting.md` for the
 feature workflow and SitRep-specific test steps.
+
+## Auth Notes
+
+The current auth slice uses an HTTP-only `dr_session_user` cookie backed by demo
+users from the shared data repository. Use the sidebar account control to sign
+in as a demo user, or log in locally with:
+
+```bash
+curl -i -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"maya.chen@example.org"}'
+```
+
+Mutation routes now require roles. Coordinators and admins can create incidents,
+tasks, resources, SitReps, and AI drafts. Responders can submit needs and update
+tasks. Partners can create and update partner activities.

@@ -26,7 +26,11 @@ import type {
   TaskStatus,
   User,
 } from "./types";
-import type { DataRepository, DashboardSummary } from "./repository";
+import type {
+  CreateSituationReportInput,
+  DataRepository,
+  DashboardSummary,
+} from "./repository";
 
 type UserWithOrg = PrismaUser & { organization: Organization | null };
 type IncidentWithRelations = PrismaIncident & {
@@ -231,6 +235,16 @@ function mapSitrep(sitrep: SitrepWithCreator): SituationReport {
   };
 }
 
+function toDate(value: string | undefined, fallback: Date) {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = new Date(value);
+
+  return Number.isNaN(parsed.getTime()) ? fallback : parsed;
+}
+
 async function calculateDashboardSummary(): Promise<DashboardSummary> {
   const [incidents, needs, tasks] = await Promise.all([
     prisma.incident.findMany({ include: { createdBy: true, needs: true, tasks: true } }),
@@ -367,6 +381,36 @@ export const prismaRepository: DataRepository = {
     });
 
     return reports.map(mapSitrep);
+  },
+  async createSituationReport(input: CreateSituationReportInput) {
+    const now = new Date();
+    const periodStart = toDate(input.reportingPeriodStart, now);
+    const periodEnd = toDate(input.reportingPeriodEnd, now);
+    const currentUser = await prisma.user.findFirst({
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!currentUser) {
+      throw new Error("Cannot create a SitRep without a user.");
+    }
+
+    const report = await prisma.situationReport.create({
+      data: {
+        incidentId: input.incidentId,
+        reportingPeriodStart: periodStart,
+        reportingPeriodEnd: periodEnd,
+        summary: input.summary,
+        impact: input.impact,
+        priorityNeeds: input.priorityNeeds,
+        responseActions: input.responseActions,
+        gaps: input.gaps,
+        nextPriorities: input.nextPriorities,
+        createdById: currentUser.id,
+      },
+      include: { createdBy: true },
+    });
+
+    return mapSitrep(report);
   },
   async getDashboardSummary() {
     return calculateDashboardSummary();

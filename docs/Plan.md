@@ -35,6 +35,8 @@ working demo MVP slice:
 - API route handlers exist for incidents, needs, tasks, resources, partner
   activities, SitReps, auth placeholders, current user, concept-note export, and
   AI SitRep drafting.
+- Auth now has an HTTP-only cookie session backed by repository users, with
+  login, logout, current-user lookup, and role checks on write routes.
 - Data access is centralized behind `app/lib/data` with `demo`, `prisma`, and
   reserved `drizzle` backend modes selected by `DATA_BACKEND`.
 - Prisma schema and initial migration exist for PostgreSQL-oriented
@@ -45,12 +47,15 @@ working demo MVP slice:
   situation report drafts from existing incident data. It does not yet power map
   analysis, task prioritization, chat, resource matching, incident creation,
   report export, or document generation.
+- Reviewed AI SitRep drafts can now be saved through
+  `POST /api/incidents/:id/sitreps` and persisted through the shared data
+  repository.
 - Local verification commands are available through `npm run test`,
   `npm run lint`, and `npm run vercel-build`.
 
-Remaining MVP work is mostly hardening: real authentication, role enforcement,
-production persistence writes, form validation depth, richer tests, and
-deployment environment setup.
+Remaining MVP work is mostly hardening: production auth provider integration,
+production persistence writes, form validation depth, richer tests, audit logs,
+and deployment environment setup.
 
 ## Phase 1: Project Foundation
 
@@ -83,7 +88,7 @@ Status: mostly complete.
 
 ## Phase 2: Authentication and Roles
 
-Status: placeholder only.
+Status: partially complete.
 
 ### Goals
 
@@ -101,12 +106,14 @@ Status: placeholder only.
 
 ### Work Items
 
-- Completed: Add placeholder login, logout, and current-user API routes.
+- Completed: Add cookie-backed login, logout, and current-user API routes.
 - Completed: Add admin view showing demo users, roles, and organizations.
-- Remaining: Implement real authentication provider.
-- Remaining: Add role checks for API mutations.
+- Completed: Add shared server-side auth helpers.
+- Completed: Add role checks for mutation routes.
+- Remaining: Replace demo cookie auth with a production authentication provider.
 - Remaining: Add route-level protection for private pages.
-- Remaining: Hide or disable unavailable actions by role.
+- Remaining: Hide or disable unavailable UI actions by role.
+- Remaining: Add audit logs that record the authenticated actor for mutations.
 
 ### Exit Criteria
 
@@ -267,6 +274,8 @@ Status: partially complete, with AI drafting implemented.
 - Remaining: Add PDF export after report layout is stable.
 - Completed: Add AI-assisted draft generation from incident, needs, task,
   resource, team, partner, and previous report context.
+- Completed: Save reviewed AI drafts as official SitRep records through the
+  SitRep POST route.
 - Completed: Implement route handlers:
   - `GET /api/incidents/:id/sitreps`
   - `POST /api/incidents/:id/sitreps`
@@ -274,8 +283,7 @@ Status: partially complete, with AI drafting implemented.
   - `POST /api/ai/incidents/:id/situation-report`
 - Completed: Add focused docs in `docs/OpenAI-Integration.md` and
   `docs/SitRep-Drafting.md`.
-- Completed: Add Vitest coverage for the AI SitRep draft route.
-- Remaining: Persist reviewed AI drafts into official SitRep records.
+- Completed: Add Vitest coverage for the AI SitRep draft and SitRep save routes.
 - Remaining: Add PDF export.
 - Remaining: Add approval workflow and audit trail.
 
@@ -374,7 +382,8 @@ Status: future scope.
 ## MVP Milestones
 
 1. Mostly complete: Local app, schema, demo data, and layout are working.
-2. Not complete: Real authentication and role-based access are still pending.
+2. Partially complete: Cookie auth and mutation role checks exist; production
+   auth provider, page protection, and audit logs remain.
 3. Partially complete: Incident pages and route handlers exist; durable Prisma
    writes and validation need hardening.
 4. Partially complete: Needs and task data is visible with route handlers;
@@ -389,7 +398,8 @@ Status: future scope.
 
 ## Risks and Open Decisions
 
-- Auth provider: decide between NextAuth and Supabase Auth before implementation.
+- Auth provider: decide whether to keep the current cookie pattern or replace it
+  with NextAuth, Supabase Auth, or another production identity provider.
 - Map provider: Leaflet is simpler for MVP, Mapbox may be better for polished production mapping.
 - Geospatial depth: MVP can store coordinates directly, but advanced filtering should use PostGIS.
 - Offline mode: useful for field responders, but should remain post-MVP unless explicitly prioritized.

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Icon, type IconName } from "@/app/components/icons";
+import { SessionControls } from "@/app/components/session-controls";
 import { data } from "@/app/lib/data";
+import { getSessionUser } from "@/app/lib/auth";
 
 const navigation = [
   { href: "/", icon: "dashboard", label: "Dashboard" },
@@ -19,7 +21,10 @@ export async function AppShell({
   active: string;
   children: React.ReactNode;
 }) {
-  const currentUser = await data.getCurrentUser();
+  const [currentUser, users] = await Promise.all([
+    getSessionUser(),
+    data.listUsers(),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] text-zinc-950">
@@ -42,10 +47,7 @@ export async function AppShell({
                 Operations Center
               </h1>
             </Link>
-            <div className="rounded-md border border-[#d8e0f3] bg-[#f5f7fb] px-3 py-2 text-right lg:mt-5 lg:text-left">
-              <p className="text-sm font-semibold text-zinc-900">{currentUser.name}</p>
-              <p className="text-xs text-zinc-500">{currentUser.role}</p>
-            </div>
+            <SessionControls currentUser={currentUser} users={users} />
           </div>
 
           <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:mt-8 lg:flex-col lg:overflow-visible lg:pb-0">

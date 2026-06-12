@@ -55,6 +55,21 @@ function mockOpenAI({
   return { create, getOpenAIClient };
 }
 
+function mockAuth() {
+  vi.doMock("@/app/lib/auth", () => ({
+    isAuthResponse: (value: unknown) => value instanceof Response,
+    requireRole: vi.fn(async () => ({
+      user: {
+        id: "user-coordinator",
+        name: "Maya Chen",
+        email: "maya.chen@example.org",
+        role: "Coordinator",
+        organization: "Mercy Malaysia",
+      },
+    })),
+  }));
+}
+
 async function loadRoute() {
   return import("@/app/api/ai/incidents/[id]/situation-report/route");
 }
@@ -94,11 +109,13 @@ describe("AI situation report route", () => {
     vi.clearAllMocks();
     vi.doUnmock("@/app/lib/data");
     vi.doUnmock("@/app/lib/ai/openai");
+    vi.doUnmock("@/app/lib/auth");
   });
 
   it("returns 503 when OPENAI_API_KEY is not configured", async () => {
     const data = mockDataRepository();
     const { getOpenAIClient } = mockOpenAI({ hasKey: false });
+    mockAuth();
     const { POST } = await loadRoute();
 
     const response = await POST(new Request("http://localhost"), {
@@ -115,6 +132,7 @@ describe("AI situation report route", () => {
   it("returns 404 when the incident does not exist", async () => {
     const data = mockDataRepository();
     const { getOpenAIClient } = mockOpenAI({ hasKey: true });
+    mockAuth();
     const { POST } = await loadRoute();
 
     const response = await POST(new Request("http://localhost"), {
@@ -134,6 +152,7 @@ describe("AI situation report route", () => {
       hasKey: true,
       draft: "## Summary\nDraft text",
     });
+    mockAuth();
     const { POST } = await loadRoute();
 
     const response = await POST(new Request("http://localhost"), {
