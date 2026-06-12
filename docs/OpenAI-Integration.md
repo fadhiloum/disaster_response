@@ -224,7 +224,8 @@ Recommended production hardening:
 - Add per-user or per-program rate limits.
 - Add request logging for timestamp, user, program ID, and model, but avoid
   storing full prompts by default.
-- Add an approval workflow before saving generated SitReps.
+- Add an approved/rejected workflow before saved SitReps are treated as
+  externally publishable.
 - Add prompt and output length limits.
 - Add a model fallback or user-facing retry state for transient API failures.
 - Review source allowlisting if production policy requires only approved
@@ -235,7 +236,6 @@ Recommended production hardening:
 
 Useful next AI features:
 
-- Draft concept-note sections from program data.
 - Summarize the latest program changes.
 - Store reviewed web-source citations with finalized SitReps.
 - Recommend priority actions from open needs, tasks, and inventory.

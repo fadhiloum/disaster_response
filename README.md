@@ -12,9 +12,12 @@ and situation reports during emergency response operations.
   initial fund requests
 - Program detail sections for overview, map, needs, tasks, deployment, budget,
   partners, and situation reports
+- Program detail workflow forms for responder need submission, coordinator task
+  assignment, and manual SitRep creation
 - Resource inventory view
+- Deployment workspace resource create/update form
 - Full operational map view
-- SitRep list, preview, and text export endpoint
+- SitRep list, preview, text export, and PDF export endpoint
 - AI-assisted SitRep drafting through the OpenAI Responses API with live web
   context and visible source links
 - Admin view for users, roles, and organizations
@@ -75,8 +78,11 @@ npm run prisma:seed
 Next persistence tasks:
 
 - Persist create, update, and delete program operations in Prisma-backed mode.
+- Persist need, task, resource, resource commitment, and partner activity
+  mutations in Prisma-backed mode.
+- Add status workflow persistence for need verification and task updates.
 - Implement the Drizzle/D1 adapter tables if Cloudflare D1 becomes a target.
-- Add server-side role checks to mutation routes.
+- Continue hardening validation, role-aware UI states, and audit logging.
 
 ## OpenAI Notes
 
