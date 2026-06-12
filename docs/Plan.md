@@ -40,7 +40,8 @@ working demo MVP slice:
 - Data access is centralized behind `app/lib/data` with `demo`, `prisma`, and
   reserved `drizzle` backend modes selected by `DATA_BACKEND`.
 - Prisma schema and initial migration exist for PostgreSQL-oriented
-  persistence.
+  persistence, with production migrations applied through `npm run
+  prisma:deploy` and seed data loaded through `npm run prisma:seed`.
 - Program records now include master budget controls, sub-program allocations,
   and fund requests that must remain within the master budget.
 - OpenAI SitRep drafting is implemented through the Responses API with required
@@ -77,9 +78,10 @@ Status: mostly complete.
 - Completed: Define base models for users, organizations, programs, needs,
   resources, tasks, partner activities, teams, and SitReps.
 - Completed: Add realistic in-repo demo data for local development.
+- Completed: Add production-grade Prisma seed data and seed command for
+  Prisma-backed environments.
 - Completed: Create shared app shell and reusable UI primitives.
 - Completed: Add environment documentation in `.env.example` and README.
-- Remaining: Add production-grade Prisma seed data and seed command.
 
 ### Exit Criteria
 
