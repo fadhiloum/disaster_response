@@ -34,6 +34,12 @@ and situation reports during emergency response operations.
 - OpenAI SDK for AI-assisted drafting
 - Demo data in `app/lib/demo-data.ts`
 
+## Installation
+- Fork the repository first.
+- Create a new folder on your desktop, open the folder on [VSCode](https://code.visualstudio.com/).
+- Clone your repository, use git clone command.
+  
+
 ## Run Locally
 
 ```bash
